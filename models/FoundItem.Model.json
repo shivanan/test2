@@ -1,0 +1,4394 @@
+{
+  "version": "2.0",
+  "models": [
+    {
+      "Key": "2",
+      "Name": "FoundItem",
+      "Definition": {
+        "version": "v2",
+        "readme": "# Found Item\n\nThis model represents an item that has been found and registered into the system.\n\nNote that *Found* items defer from *Lost* items.\n\nA lost item are registered by the person who lost the item. \n\nFound items are registered by someone who has seen an unattended item and reports it as having been 'found'.",
+        "attributes": [],
+        "flows": {
+          "blocks": [
+            {
+              "title": "ES6Javascript",
+              "type": "es6javascript",
+              "id": "8bbfd9dd-febd-4deb-b69d-5a9af6704505",
+              "position": {
+                "left": 1644,
+                "top": 277
+              },
+              "surface": "UploadImage",
+              "connections": {
+                "inputs": [
+                  {
+                    "source": "d9613bd2-188c-4ffa-ed17-4aad30602c7c:output:output",
+                    "target": "8bbfd9dd-febd-4deb-b69d-5a9af6704505:input:gcv_data"
+                  },
+                  {
+                    "source": "458240a1-b0bc-40de-f272-ca2942e8347c:output:output",
+                    "target": "8bbfd9dd-febd-4deb-b69d-5a9af6704505:input:aws_data"
+                  }
+                ],
+                "outputs": [
+                  {
+                    "source": "8bbfd9dd-febd-4deb-b69d-5a9af6704505:output:features",
+                    "target": "f9641c44-4649-4600-9181-cd3309d44585:input:input"
+                  }
+                ]
+              },
+              "inputValues": [
+                {
+                  "id": "trigger",
+                  "type": "",
+                  "label": "Trigger",
+                  "value": "",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                },
+                {
+                  "id": "aws_data",
+                  "type": "",
+                  "label": "aws_data",
+                  "value": "",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                },
+                {
+                  "id": "gcv_data",
+                  "type": "",
+                  "label": "gcv_data",
+                  "value": "",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                }
+              ],
+              "outputValues": [
+                {
+                  "id": "__error__",
+                  "type": "error",
+                  "label": "Error",
+                  "description": "",
+                  "documentation": "",
+                  "example": "",
+                  "dataType": ""
+                },
+                {
+                  "id": "features",
+                  "type": "",
+                  "label": "features",
+                  "description": "",
+                  "documentation": "",
+                  "example": "",
+                  "dataType": ""
+                }
+              ],
+              "description": "",
+              "code": "let inputs = runtime.inputs();\r\nlet outputs = runtime.outputs();\r\nlet awsData = inputs.aws_data;\r\nlet gcvData = JSON.parse(inputs.gcv_data);\r\nlet features = new Set();\r\nlet colors = new Set();\r\n\r\nfunction numberToHex(num) {\r\n    let hex = num.toString(16).toUpperCase();\r\n\r\n    hex = hex.length < 2 ? '0'+ hex : hex;\r\n\r\n    return hex;\r\n}\r\n\r\nif (!!gcvData && gcvData.length > 0) {\r\n    awsData.forEach(feature => features.add(feature.label));\r\n}\r\n\r\nif (!!gcvData && !!gcvData.responses && gcvData.responses.length > 0) {\r\n    let annotations = gcvData.responses[0];\r\n    \r\n    if (!!annotations.labelAnnotations && annotations.labelAnnotations.length > 0) {\r\n        annotations.labelAnnotations\r\n            .forEach(annotation => features.add(annotation.description.trim()));\r\n    }\r\n\r\n    if (!!annotations.textAnnotations\r\n        && annotations.textAnnotations.length > 0) {\r\n        annotations.textAnnotations\r\n            .forEach(annotation => features.add(annotation.description.trim()));\r\n    }\r\n\r\n    if (!!annotations.imagePropertiesAnnotation \r\n        && !!annotations.imagePropertiesAnnotation.dominantColors\r\n        && !!annotations.imagePropertiesAnnotation.dominantColors.colors\r\n        && annotations.imagePropertiesAnnotation.dominantColors.colors.length > 0)\r\n    annotations.imagePropertiesAnnotation\r\n        .dominantColors\r\n        .colors\r\n        .forEach(colorInfo => {\r\n            let red = colorInfo.color.red;\r\n            let green = colorInfo.color.green;\r\n            let blue = colorInfo.color.blue;\r\n\r\n            let hex = numberToHex(red) + numberToHex(green) + numberToHex(blue);\r\n            let color = (!!lucy.hexToColor ? lucy.hexToColor(hex) : \"\") || \"\";\r\n\r\n            colors.add({hex, color});\r\n        });\r\n}\r\n\r\noutputs.features = {\r\n    labels: Array.from(features),\r\n    colors: Array.from(colors),\r\n};\r\n\r\nruntime.done(outputs);",
+              "timeoutMilliseconds": 5000
+            },
+            {
+              "title": "ES6Javascript",
+              "type": "es6javascript",
+              "id": "c8ddc260-722d-428f-e3a2-303a3da09900",
+              "position": {
+                "left": 389,
+                "top": 101
+              },
+              "surface": "Handover",
+              "connections": {
+                "inputs": [
+                  {
+                    "source": "444700b8-de06-4f42-c8c7-636c2d1cb472:output:id",
+                    "target": "c8ddc260-722d-428f-e3a2-303a3da09900:input:id"
+                  },
+                  {
+                    "source": "444700b8-de06-4f42-c8c7-636c2d1cb472:output:LostItemID",
+                    "target": "c8ddc260-722d-428f-e3a2-303a3da09900:input:lostItemID"
+                  },
+                  {
+                    "source": "444700b8-de06-4f42-c8c7-636c2d1cb472:output:HandedOverEmail",
+                    "target": "c8ddc260-722d-428f-e3a2-303a3da09900:input:handedOverEmail"
+                  },
+                  {
+                    "source": "444700b8-de06-4f42-c8c7-636c2d1cb472:output:HandedOverToImageUrl",
+                    "target": "c8ddc260-722d-428f-e3a2-303a3da09900:input:handedOverToImageUrl"
+                  },
+                  {
+                    "source": "444700b8-de06-4f42-c8c7-636c2d1cb472:output:HandedOverCardDetails",
+                    "target": "c8ddc260-722d-428f-e3a2-303a3da09900:input:handedOverCardDetails"
+                  },
+                  {
+                    "source": "444700b8-de06-4f42-c8c7-636c2d1cb472:output:HandedOverName",
+                    "target": "c8ddc260-722d-428f-e3a2-303a3da09900:input:handedOverName"
+                  }
+                ],
+                "outputs": [
+                  {
+                    "source": "c8ddc260-722d-428f-e3a2-303a3da09900:output:out",
+                    "target": "0906ffa3-5ce0-4954-a52d-fe627638d2b3:input:input"
+                  }
+                ]
+              },
+              "inputValues": [
+                {
+                  "id": "trigger",
+                  "type": "",
+                  "label": "Trigger",
+                  "value": "",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                },
+                {
+                  "id": "id",
+                  "type": "",
+                  "label": "id",
+                  "value": "",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                },
+                {
+                  "id": "lostItemID",
+                  "type": "",
+                  "label": "lostItemID",
+                  "value": "",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                },
+                {
+                  "id": "handedOverEmail",
+                  "type": "",
+                  "label": "handedOverEmail",
+                  "value": "",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                },
+                {
+                  "id": "handedOverToImageUrl",
+                  "type": "",
+                  "label": "handedOverToImageUrl",
+                  "value": "",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                },
+                {
+                  "id": "handedOverCardDetails",
+                  "type": "",
+                  "label": "handedOverCardDetails",
+                  "value": "",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                },
+                {
+                  "id": "handedOverName",
+                  "type": "",
+                  "label": "handedOverName",
+                  "value": "",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                }
+              ],
+              "outputValues": [
+                {
+                  "id": "__error__",
+                  "type": "error",
+                  "label": "Error",
+                  "description": "",
+                  "documentation": "",
+                  "example": "",
+                  "dataType": ""
+                },
+                {
+                  "id": "out",
+                  "type": "",
+                  "label": "out",
+                  "description": "",
+                  "documentation": "",
+                  "example": "",
+                  "dataType": ""
+                }
+              ],
+              "description": "",
+              "code": "let inputs = runtime.inputs();\nlet id = xstr(inputs.id);\nlet lostItemID = xstr(inputs.lostItemID);\nlet handedOverName = xstr(inputs.handedOverName);\nlet handedOverEmail = xstr(inputs.handedOverEmail);\nlet handedOverToImageUrl = xstr(inputs.handedOverToImageUrl);\nlet handedOverCardDetails = inputs.handedOverCardDetails;\n\ntry {\n    handedOverCardDetails = JSON.parse(handedOverCardDetails);\n} catch {}\n\nlet collections = lucy.currentModel().collections();\n\ncollections.updateOne('Items', {\n    _id: id\n}, {\n        '$set': {\n            'HandedOverName': handedOverName,\n            'HandedOverEmail': handedOverEmail,\n            'HandedOverTime': lucy.now(),\n            'Status': 'Handed Over',\n            'HandedOverToImageUrl': handedOverToImageUrl,\n            'HandedOverCardDetails': handedOverCardDetails\n        }\n    }, {}).then(_ => {\n\n        if (lostItemID.trim().length > 0) {\n            return lucy.model('LostItem').executeAction('Update', {\n                'id': lostItemID,\n                'data': {\n                    'Status': 'Found',\n                    'FoundItemID': id\n                }\n            });\n        }\n\n        return new Promise((res, rej) => {res()})\n\n    })\n    .then(_ => runtime.done({ out: '' }))\n    .catch(err => runtime.error(err));",
+              "timeoutMilliseconds": 5000
+            },
+            {
+              "title": "Get Value From Memory",
+              "type": "getfrommemory",
+              "id": "e0c21e92-f346-4aca-fd80-451029ccd15f",
+              "position": {
+                "left": 1204,
+                "top": 277
+              },
+              "surface": "UploadImage",
+              "connections": {
+                "inputs": [
+                  {
+                    "source": "759c1cda-b7cf-47de-ce6c-3acf4e11b596:output:Status",
+                    "target": "e0c21e92-f346-4aca-fd80-451029ccd15f:input:trigger"
+                  }
+                ],
+                "outputs": [
+                  {
+                    "source": "e0c21e92-f346-4aca-fd80-451029ccd15f:output:output",
+                    "target": "458240a1-b0bc-40de-f272-ca2942e8347c:input:data"
+                  },
+                  {
+                    "source": "e0c21e92-f346-4aca-fd80-451029ccd15f:output:output",
+                    "target": "d9613bd2-188c-4ffa-ed17-4aad30602c7c:input:data"
+                  }
+                ]
+              },
+              "inputValues": [
+                {
+                  "id": "prefix",
+                  "type": "",
+                  "label": "Prefix",
+                  "value": "",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                },
+                {
+                  "id": "key",
+                  "type": "",
+                  "label": "Key",
+                  "value": "file",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                },
+                {
+                  "id": "trigger",
+                  "type": "",
+                  "label": "Trigger",
+                  "value": "",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                }
+              ],
+              "outputValues": [
+                {
+                  "id": "output",
+                  "type": "",
+                  "label": "Output",
+                  "description": "",
+                  "documentation": "",
+                  "example": "",
+                  "dataType": ""
+                }
+              ]
+            },
+            {
+              "title": "Output",
+              "type": "actionoutput",
+              "id": "0906ffa3-5ce0-4954-a52d-fe627638d2b3",
+              "position": {
+                "left": 664,
+                "top": 142
+              },
+              "surface": "Handover",
+              "connections": {
+                "inputs": [
+                  {
+                    "source": "c8ddc260-722d-428f-e3a2-303a3da09900:output:out",
+                    "target": "0906ffa3-5ce0-4954-a52d-fe627638d2b3:input:input"
+                  }
+                ],
+                "outputs": []
+              },
+              "inputValues": [
+                {
+                  "id": "input",
+                  "type": "",
+                  "label": "Value",
+                  "value": "1",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                },
+                {
+                  "id": "trigger",
+                  "type": "",
+                  "label": "Trigger",
+                  "value": "",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                }
+              ],
+              "outputValues": [],
+              "fieldName": "ok"
+            },
+            {
+              "title": "Output",
+              "type": "actionoutput",
+              "id": "1e636f9e-60c8-40cc-a9a4-9b21a9c59988",
+              "position": {
+                "left": 846,
+                "top": 155
+              },
+              "surface": "Claim",
+              "connections": {
+                "inputs": [
+                  {
+                    "source": "151c941b-cf7b-4f5e-f9be-565d8fb4ce3c:output:output",
+                    "target": "1e636f9e-60c8-40cc-a9a4-9b21a9c59988:input:input"
+                  }
+                ],
+                "outputs": []
+              },
+              "inputValues": [
+                {
+                  "id": "input",
+                  "type": "",
+                  "label": "Value",
+                  "value": "1",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                },
+                {
+                  "id": "trigger",
+                  "type": "",
+                  "label": "Trigger",
+                  "value": "",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                }
+              ],
+              "outputValues": [],
+              "fieldName": "ok"
+            },
+            {
+              "title": "ES6Javascript",
+              "type": "es6javascript",
+              "id": "ee73daf6-1914-4a6e-b29d-52dc10d353f5",
+              "position": {
+                "left": 435,
+                "top": 205
+              },
+              "surface": "FindByStatus",
+              "connections": {
+                "inputs": [
+                  {
+                    "source": "2078d6de-14d3-4734-85df-1ebf41ff6c8f:output:status",
+                    "target": "ee73daf6-1914-4a6e-b29d-52dc10d353f5:input:status"
+                  }
+                ],
+                "outputs": [
+                  {
+                    "source": "ee73daf6-1914-4a6e-b29d-52dc10d353f5:output:out",
+                    "target": "fc9ba73d-bbbd-4cb5-b226-2ea84b3c3e36:input:input"
+                  }
+                ]
+              },
+              "inputValues": [
+                {
+                  "id": "trigger",
+                  "type": "",
+                  "label": "Trigger",
+                  "value": "",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                },
+                {
+                  "id": "status",
+                  "type": "",
+                  "label": "status",
+                  "value": "",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                }
+              ],
+              "outputValues": [
+                {
+                  "id": "__error__",
+                  "type": "error",
+                  "label": "Error",
+                  "description": "",
+                  "documentation": "",
+                  "example": "",
+                  "dataType": ""
+                },
+                {
+                  "id": "out",
+                  "type": "",
+                  "label": "out",
+                  "description": "",
+                  "documentation": "",
+                  "example": "",
+                  "dataType": ""
+                }
+              ],
+              "description": "",
+              "code": "let inputs = runtime.inputs();\nlet collections = lucy.currentModel().collections();\n\nlet filter = {\n    '$or': xstr(inputs.status).trim()\n        .split(',')\n        .map(s => {\n            return {'Status': s.trim()};\n        })\n}\n\ncollections.findMany('Items', filter, {})\n    .then(out => runtime.done({out}))\n    .catch(err => runtime.error(err));\n",
+              "timeoutMilliseconds": 5000
+            },
+            {
+              "title": "Action",
+              "type": "actionstart",
+              "id": "5506c5b7-bdb9-4427-d486-405dfa1b3810",
+              "position": {
+                "left": 65,
+                "top": 131
+              },
+              "surface": "All",
+              "connections": {
+                "inputs": [],
+                "outputs": [
+                  {
+                    "source": "5506c5b7-bdb9-4427-d486-405dfa1b3810:output:output",
+                    "target": "dc3c8558-def5-4a12-e1dd-ca7d86afb2d3:input:trigger"
+                  }
+                ]
+              },
+              "inputValues": [],
+              "outputValues": [
+                {
+                  "id": "output",
+                  "type": "",
+                  "label": "All Output",
+                  "description": "",
+                  "documentation": "",
+                  "example": "",
+                  "dataType": ""
+                },
+                {
+                  "id": "__error__",
+                  "type": "error",
+                  "label": "Error",
+                  "description": "",
+                  "documentation": "",
+                  "example": "",
+                  "dataType": ""
+                }
+              ],
+              "actionName": "All",
+              "initiate": false,
+              "published": false,
+              "debug": false,
+              "roles": [],
+              "static": true,
+              "canOverrideCredentials": false,
+              "docs": ""
+            },
+            {
+              "title": "S3 Upload",
+              "type": "connector:AWSConnector:S3 Upload",
+              "id": "759c1cda-b7cf-47de-ce6c-3acf4e11b596",
+              "position": {
+                "left": 984,
+                "top": 57
+              },
+              "surface": "UploadImage",
+              "connections": {
+                "inputs": [
+                  {
+                    "source": "e54f9877-67ef-4082-af01-9f6d119728d4:output:output",
+                    "target": "759c1cda-b7cf-47de-ce6c-3acf4e11b596:input:Key"
+                  },
+                  {
+                    "source": "23349fcb-41e5-48b6-867a-d950d225bcea:output:output",
+                    "target": "759c1cda-b7cf-47de-ce6c-3acf4e11b596:input:Data"
+                  }
+                ],
+                "outputs": [
+                  {
+                    "source": "759c1cda-b7cf-47de-ce6c-3acf4e11b596:output:Status",
+                    "target": "9e9c0f3d-f33b-4fef-df65-a40ae857d36c:input:trigger"
+                  },
+                  {
+                    "source": "759c1cda-b7cf-47de-ce6c-3acf4e11b596:output:Status",
+                    "target": "e0c21e92-f346-4aca-fd80-451029ccd15f:input:trigger"
+                  }
+                ]
+              },
+              "inputValues": [
+                {
+                  "id": "AccountName",
+                  "type": "",
+                  "label": "AccountName",
+                  "value": "iviva.releases",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                },
+                {
+                  "id": "RegionEndPoint",
+                  "type": "",
+                  "label": "RegionEndPoint",
+                  "value": "ap-southeast-1",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                },
+                {
+                  "id": "Bucket",
+                  "type": "",
+                  "label": "Bucket",
+                  "value": "#{model.s3bucket}",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                },
+                {
+                  "id": "Key",
+                  "type": "",
+                  "label": "Key",
+                  "value": "",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                },
+                {
+                  "id": "Data",
+                  "type": "",
+                  "label": "Data",
+                  "value": "",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                },
+                {
+                  "id": "ContentType",
+                  "type": "",
+                  "label": "ContentType",
+                  "value": "application/octet-stream",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                },
+                {
+                  "id": "trigger",
+                  "type": "",
+                  "label": "Trigger",
+                  "value": "",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                }
+              ],
+              "outputValues": [
+                {
+                  "id": "Status",
+                  "type": "",
+                  "label": "Status",
+                  "description": "",
+                  "documentation": "",
+                  "example": "",
+                  "dataType": ""
+                }
+              ]
+            },
+            {
+              "title": "Action",
+              "type": "actionstart",
+              "id": "c04af95f-96e5-4453-959a-1b7978e658d9",
+              "position": {
+                "left": 60,
+                "top": 60
+              },
+              "surface": "UploadImage",
+              "connections": {
+                "inputs": [],
+                "outputs": [
+                  {
+                    "source": "c04af95f-96e5-4453-959a-1b7978e658d9:output:File",
+                    "target": "23349fcb-41e5-48b6-867a-d950d225bcea:input:value"
+                  },
+                  {
+                    "source": "c04af95f-96e5-4453-959a-1b7978e658d9:output:output",
+                    "target": "85bad114-7981-4930-b1f1-2678129de0a2:input:trigger"
+                  }
+                ]
+              },
+              "inputValues": [],
+              "outputValues": [
+                {
+                  "id": "output",
+                  "type": "",
+                  "label": "All Output",
+                  "description": "",
+                  "documentation": "",
+                  "example": "",
+                  "dataType": ""
+                },
+                {
+                  "id": "__error__",
+                  "type": "error",
+                  "label": "Error",
+                  "description": "",
+                  "documentation": "",
+                  "example": "",
+                  "dataType": ""
+                },
+                {
+                  "id": "File",
+                  "type": "",
+                  "label": "File",
+                  "description": "",
+                  "documentation": "",
+                  "example": "",
+                  "dataType": ""
+                }
+              ],
+              "actionName": "UploadImage",
+              "initiate": false,
+              "published": false,
+              "debug": true,
+              "roles": [],
+              "static": true,
+              "canOverrideCredentials": false,
+              "docs": ""
+            },
+            {
+              "title": "Action",
+              "type": "actionstart",
+              "id": "32efd209-c032-4ce0-9e64-c8fd584253bd",
+              "position": {
+                "left": 107,
+                "top": 195
+              },
+              "surface": "FindOne",
+              "connections": {
+                "inputs": [],
+                "outputs": [
+                  {
+                    "source": "32efd209-c032-4ce0-9e64-c8fd584253bd:output:id",
+                    "target": "9f099e05-23f3-44e5-b6da-967018913f58:input:id"
+                  }
+                ]
+              },
+              "inputValues": [],
+              "outputValues": [
+                {
+                  "id": "output",
+                  "type": "",
+                  "label": "All Output",
+                  "description": "",
+                  "documentation": "",
+                  "example": "",
+                  "dataType": ""
+                },
+                {
+                  "id": "__error__",
+                  "type": "error",
+                  "label": "Error",
+                  "description": "",
+                  "documentation": "",
+                  "example": "",
+                  "dataType": ""
+                },
+                {
+                  "id": "id",
+                  "type": "",
+                  "label": "id",
+                  "description": "",
+                  "documentation": "",
+                  "example": "",
+                  "dataType": ""
+                }
+              ],
+              "actionName": "FindOne",
+              "initiate": false,
+              "published": false,
+              "debug": true,
+              "roles": [],
+              "static": true,
+              "canOverrideCredentials": false,
+              "docs": ""
+            },
+            {
+              "title": "ES6Javascript",
+              "type": "es6javascript",
+              "id": "c8295737-aa00-4a88-b35e-611868757af3",
+              "position": {
+                "left": 328,
+                "top": 165
+              },
+              "surface": "FindClaimsByEmail",
+              "connections": {
+                "inputs": [
+                  {
+                    "source": "b3265c80-8497-4a49-d75c-5e9aa2968eef:output:email",
+                    "target": "c8295737-aa00-4a88-b35e-611868757af3:input:email"
+                  }
+                ],
+                "outputs": [
+                  {
+                    "source": "c8295737-aa00-4a88-b35e-611868757af3:output:out",
+                    "target": "6555cc31-906a-4197-91b1-2dba380936c0:input:input"
+                  }
+                ]
+              },
+              "inputValues": [
+                {
+                  "id": "trigger",
+                  "type": "",
+                  "label": "Trigger",
+                  "value": "",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                },
+                {
+                  "id": "email",
+                  "type": "",
+                  "label": "email",
+                  "value": "",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                }
+              ],
+              "outputValues": [
+                {
+                  "id": "__error__",
+                  "type": "error",
+                  "label": "Error",
+                  "description": "",
+                  "documentation": "",
+                  "example": "",
+                  "dataType": ""
+                },
+                {
+                  "id": "out",
+                  "type": "",
+                  "label": "out",
+                  "description": "",
+                  "documentation": "",
+                  "example": "",
+                  "dataType": ""
+                }
+              ],
+              "description": "",
+              "code": "let inputs = runtime.inputs();\nlet email = xstr(inputs.email);\nlet collection = lucy.currentModel().collections();\n\ncollection.findMany('Items', {\n    'claimed': email\n}, {}).then(out => runtime.done({out}))\n    .catch(err => runtime.error(err));",
+              "timeoutMilliseconds": 5000
+            },
+            {
+              "title": "Action",
+              "type": "actionstart",
+              "id": "6c924b51-d41a-41b5-d658-8ed56a132798",
+              "position": {
+                "left": 56,
+                "top": 112
+              },
+              "surface": "Create",
+              "connections": {
+                "inputs": [],
+                "outputs": [
+                  {
+                    "source": "6c924b51-d41a-41b5-d658-8ed56a132798:output:Name",
+                    "target": "1893eb9d-8e2a-4545-c612-de9d33b52619:input:Name"
+                  },
+                  {
+                    "source": "6c924b51-d41a-41b5-d658-8ed56a132798:output:Email",
+                    "target": "1893eb9d-8e2a-4545-c612-de9d33b52619:input:Email"
+                  },
+                  {
+                    "source": "6c924b51-d41a-41b5-d658-8ed56a132798:output:Location",
+                    "target": "1893eb9d-8e2a-4545-c612-de9d33b52619:input:Location"
+                  },
+                  {
+                    "source": "6c924b51-d41a-41b5-d658-8ed56a132798:output:Description",
+                    "target": "1893eb9d-8e2a-4545-c612-de9d33b52619:input:Description"
+                  },
+                  {
+                    "source": "6c924b51-d41a-41b5-d658-8ed56a132798:output:PoliceStationID",
+                    "target": "1893eb9d-8e2a-4545-c612-de9d33b52619:input:PoliceStationID"
+                  },
+                  {
+                    "source": "6c924b51-d41a-41b5-d658-8ed56a132798:output:LockerID",
+                    "target": "1893eb9d-8e2a-4545-c612-de9d33b52619:input:LockerID"
+                  },
+                  {
+                    "source": "6c924b51-d41a-41b5-d658-8ed56a132798:output:Status",
+                    "target": "1893eb9d-8e2a-4545-c612-de9d33b52619:input:Status"
+                  },
+                  {
+                    "source": "6c924b51-d41a-41b5-d658-8ed56a132798:output:Phone",
+                    "target": "1893eb9d-8e2a-4545-c612-de9d33b52619:input:Phone"
+                  },
+                  {
+                    "source": "6c924b51-d41a-41b5-d658-8ed56a132798:output:AdditionalDetails",
+                    "target": "1893eb9d-8e2a-4545-c612-de9d33b52619:input:AdditionalDetails"
+                  },
+                  {
+                    "source": "6c924b51-d41a-41b5-d658-8ed56a132798:output:ImageUrl",
+                    "target": "1893eb9d-8e2a-4545-c612-de9d33b52619:input:ImageUrl"
+                  },
+                  {
+                    "source": "6c924b51-d41a-41b5-d658-8ed56a132798:output:Name",
+                    "target": "1893eb9d-8e2a-4545-c612-de9d33b52619:input:Name"
+                  },
+                  {
+                    "source": "6c924b51-d41a-41b5-d658-8ed56a132798:output:Email",
+                    "target": "1893eb9d-8e2a-4545-c612-de9d33b52619:input:Email"
+                  },
+                  {
+                    "source": "6c924b51-d41a-41b5-d658-8ed56a132798:output:Location",
+                    "target": "1893eb9d-8e2a-4545-c612-de9d33b52619:input:Location"
+                  },
+                  {
+                    "source": "6c924b51-d41a-41b5-d658-8ed56a132798:output:Description",
+                    "target": "1893eb9d-8e2a-4545-c612-de9d33b52619:input:Description"
+                  },
+                  {
+                    "source": "6c924b51-d41a-41b5-d658-8ed56a132798:output:PoliceStationID",
+                    "target": "1893eb9d-8e2a-4545-c612-de9d33b52619:input:PoliceStationID"
+                  },
+                  {
+                    "source": "6c924b51-d41a-41b5-d658-8ed56a132798:output:LockerID",
+                    "target": "1893eb9d-8e2a-4545-c612-de9d33b52619:input:LockerID"
+                  },
+                  {
+                    "source": "6c924b51-d41a-41b5-d658-8ed56a132798:output:Status",
+                    "target": "1893eb9d-8e2a-4545-c612-de9d33b52619:input:Status"
+                  },
+                  {
+                    "source": "6c924b51-d41a-41b5-d658-8ed56a132798:output:Phone",
+                    "target": "1893eb9d-8e2a-4545-c612-de9d33b52619:input:Phone"
+                  },
+                  {
+                    "source": "6c924b51-d41a-41b5-d658-8ed56a132798:output:AdditionalDetails",
+                    "target": "1893eb9d-8e2a-4545-c612-de9d33b52619:input:AdditionalDetails"
+                  },
+                  {
+                    "source": "6c924b51-d41a-41b5-d658-8ed56a132798:output:ImageUrl",
+                    "target": "1893eb9d-8e2a-4545-c612-de9d33b52619:input:ImageUrl"
+                  },
+                  {
+                    "source": "6c924b51-d41a-41b5-d658-8ed56a132798:output:Features",
+                    "target": "1893eb9d-8e2a-4545-c612-de9d33b52619:input:Features"
+                  },
+                  {
+                    "source": "6c924b51-d41a-41b5-d658-8ed56a132798:output:FoundLocation",
+                    "target": "1893eb9d-8e2a-4545-c612-de9d33b52619:input:FoundLocation"
+                  }
+                ]
+              },
+              "inputValues": [],
+              "outputValues": [
+                {
+                  "id": "output",
+                  "type": "",
+                  "label": "All Output",
+                  "description": "",
+                  "documentation": "",
+                  "example": "",
+                  "dataType": ""
+                },
+                {
+                  "id": "__error__",
+                  "type": "error",
+                  "label": "Error",
+                  "description": "",
+                  "documentation": "",
+                  "example": "",
+                  "dataType": ""
+                },
+                {
+                  "id": "Name",
+                  "type": "",
+                  "label": "Name",
+                  "description": "",
+                  "documentation": "",
+                  "example": "",
+                  "dataType": ""
+                },
+                {
+                  "id": "Email",
+                  "type": "",
+                  "label": "Email",
+                  "description": "",
+                  "documentation": "",
+                  "example": "",
+                  "dataType": ""
+                },
+                {
+                  "id": "Location",
+                  "type": "",
+                  "label": "Location",
+                  "description": "",
+                  "documentation": "",
+                  "example": "",
+                  "dataType": ""
+                },
+                {
+                  "id": "Description",
+                  "type": "",
+                  "label": "Description",
+                  "description": "",
+                  "documentation": "",
+                  "example": "",
+                  "dataType": ""
+                },
+                {
+                  "id": "PoliceStationID",
+                  "type": "",
+                  "label": "PoliceStationID",
+                  "description": "",
+                  "documentation": "",
+                  "example": "",
+                  "dataType": ""
+                },
+                {
+                  "id": "LockerID",
+                  "type": "",
+                  "label": "LockerID",
+                  "description": "",
+                  "documentation": "",
+                  "example": "",
+                  "dataType": ""
+                },
+                {
+                  "id": "Status",
+                  "type": "",
+                  "label": "Status",
+                  "description": "",
+                  "documentation": "",
+                  "example": "",
+                  "dataType": ""
+                },
+                {
+                  "id": "Phone",
+                  "type": "",
+                  "label": "Phone",
+                  "description": "",
+                  "documentation": "",
+                  "example": "",
+                  "dataType": ""
+                },
+                {
+                  "id": "AdditionalDetails",
+                  "type": "",
+                  "label": "AdditionalDetails",
+                  "description": "",
+                  "documentation": "",
+                  "example": "",
+                  "dataType": ""
+                },
+                {
+                  "id": "ImageUrl",
+                  "type": "",
+                  "label": "ImageUrl",
+                  "description": "",
+                  "documentation": "",
+                  "example": "",
+                  "dataType": ""
+                },
+                {
+                  "id": "Features",
+                  "type": "",
+                  "label": "Features",
+                  "description": "",
+                  "documentation": "",
+                  "example": "",
+                  "dataType": ""
+                },
+                {
+                  "id": "FoundLocation",
+                  "type": "",
+                  "label": "FoundLocation",
+                  "description": "",
+                  "documentation": "",
+                  "example": "",
+                  "dataType": ""
+                }
+              ],
+              "actionName": "Create",
+              "initiate": false,
+              "published": false,
+              "debug": true,
+              "roles": [],
+              "static": true,
+              "canOverrideCredentials": false,
+              "docs": ""
+            },
+            {
+              "title": "ES6Javascript",
+              "type": "es6javascript",
+              "id": "c4493c92-1865-4381-bc25-4bde94f998fc",
+              "position": {
+                "left": 1119,
+                "top": 291
+              },
+              "surface": "Create",
+              "connections": {
+                "inputs": [
+                  {
+                    "source": "a4a128fe-ffaf-438f-c018-ccd5a30c566e:output:output",
+                    "target": "c4493c92-1865-4381-bc25-4bde94f998fc:input:data"
+                  },
+                  {
+                    "source": "a4a128fe-ffaf-438f-c018-ccd5a30c566e:output:Features",
+                    "target": "c4493c92-1865-4381-bc25-4bde94f998fc:input:features"
+                  }
+                ],
+                "outputs": [
+                  {
+                    "source": "c4493c92-1865-4381-bc25-4bde94f998fc:output:features",
+                    "target": "60679188-a1ba-4876-906c-7a97d867f6e9:input:features"
+                  },
+                  {
+                    "source": "c4493c92-1865-4381-bc25-4bde94f998fc:output:data",
+                    "target": "60679188-a1ba-4876-906c-7a97d867f6e9:input:data"
+                  },
+                  {
+                    "source": "c4493c92-1865-4381-bc25-4bde94f998fc:output:features",
+                    "target": "60679188-a1ba-4876-906c-7a97d867f6e9:input:features"
+                  },
+                  {
+                    "source": "c4493c92-1865-4381-bc25-4bde94f998fc:output:location",
+                    "target": "60679188-a1ba-4876-906c-7a97d867f6e9:input:location"
+                  }
+                ]
+              },
+              "inputValues": [
+                {
+                  "id": "trigger",
+                  "type": "",
+                  "label": "Trigger",
+                  "value": "",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                },
+                {
+                  "id": "features",
+                  "type": "",
+                  "label": "features",
+                  "value": "",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                },
+                {
+                  "id": "data",
+                  "type": "",
+                  "label": "data",
+                  "value": "",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                }
+              ],
+              "outputValues": [
+                {
+                  "id": "__error__",
+                  "type": "error",
+                  "label": "Error",
+                  "description": "",
+                  "documentation": "",
+                  "example": "",
+                  "dataType": ""
+                },
+                {
+                  "id": "features",
+                  "type": "",
+                  "label": "features",
+                  "description": "",
+                  "documentation": "",
+                  "example": "",
+                  "dataType": ""
+                },
+                {
+                  "id": "data",
+                  "type": "",
+                  "label": "data",
+                  "description": "",
+                  "documentation": "",
+                  "example": "",
+                  "dataType": ""
+                },
+                {
+                  "id": "location",
+                  "type": "",
+                  "label": "location",
+                  "description": "",
+                  "documentation": "",
+                  "example": "",
+                  "dataType": ""
+                }
+              ],
+              "description": "",
+              "code": "let inputs = runtime.inputs();\nlet features = inputs.features;\nlet data = inputs.data;\nlet foundLocation = data['FoundLocation'];\n\nlet location = lucy.extractWithJsonPath(foundLocation, '$.name', true);\n\nruntime.done({features: JSON.stringify(features), data: JSON.stringify(data), location});",
+              "timeoutMilliseconds": 5000
+            },
+            {
+              "title": "Action",
+              "type": "actionstart",
+              "id": "83d54f43-8c20-4dca-f04a-cfc0971d2896",
+              "position": {
+                "left": 79,
+                "top": 118
+              },
+              "surface": "Update",
+              "connections": {
+                "inputs": [],
+                "outputs": [
+                  {
+                    "source": "83d54f43-8c20-4dca-f04a-cfc0971d2896:output:data",
+                    "target": "55f279c7-dce5-4a4b-bc01-80554dea3024:input:data"
+                  },
+                  {
+                    "source": "83d54f43-8c20-4dca-f04a-cfc0971d2896:output:id",
+                    "target": "55f279c7-dce5-4a4b-bc01-80554dea3024:input:id"
+                  }
+                ]
+              },
+              "inputValues": [],
+              "outputValues": [
+                {
+                  "id": "output",
+                  "type": "",
+                  "label": "All Output",
+                  "description": "",
+                  "documentation": "",
+                  "example": "",
+                  "dataType": ""
+                },
+                {
+                  "id": "__error__",
+                  "type": "error",
+                  "label": "Error",
+                  "description": "",
+                  "documentation": "",
+                  "example": "",
+                  "dataType": ""
+                },
+                {
+                  "id": "data",
+                  "type": "",
+                  "label": "data",
+                  "description": "",
+                  "documentation": "",
+                  "example": "",
+                  "dataType": ""
+                },
+                {
+                  "id": "id",
+                  "type": "",
+                  "label": "id",
+                  "description": "",
+                  "documentation": "",
+                  "example": "",
+                  "dataType": ""
+                }
+              ],
+              "actionName": "Update",
+              "initiate": false,
+              "published": false,
+              "debug": false,
+              "roles": [],
+              "static": true,
+              "canOverrideCredentials": false,
+              "docs": ""
+            },
+            {
+              "title": "Send Email",
+              "type": "connector:MessagingConnector:SendEmail",
+              "id": "151c941b-cf7b-4f5e-f9be-565d8fb4ce3c",
+              "position": {
+                "left": 605,
+                "top": 127
+              },
+              "surface": "Claim",
+              "connections": {
+                "inputs": [
+                  {
+                    "source": "f94483d7-9f4f-44cd-ca0d-3b009bab08b4:output:qr",
+                    "target": "151c941b-cf7b-4f5e-f9be-565d8fb4ce3c:input:qr"
+                  }
+                ],
+                "outputs": [
+                  {
+                    "source": "151c941b-cf7b-4f5e-f9be-565d8fb4ce3c:output:output",
+                    "target": "1e636f9e-60c8-40cc-a9a4-9b21a9c59988:input:input"
+                  }
+                ]
+              },
+              "inputValues": [
+                {
+                  "id": "trigger",
+                  "type": "",
+                  "label": "Trigger",
+                  "value": "",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                },
+                {
+                  "id": "qr",
+                  "type": "",
+                  "label": "qr",
+                  "value": "",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                },
+                {
+                  "id": "to",
+                  "type": "",
+                  "label": "to",
+                  "value": "#{input.Email}",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                }
+              ],
+              "outputValues": [
+                {
+                  "id": "output",
+                  "type": "",
+                  "label": "Output",
+                  "description": "",
+                  "documentation": "",
+                  "example": "",
+                  "dataType": ""
+                }
+              ],
+              "TemplateID": "FoundItemClaimed"
+            },
+            {
+              "title": "Entity Attribute Details",
+              "type": "callwebservice:Fiware Orion Broker:Entity Attribute Details",
+              "id": "f642fb49-f39c-40e9-f5f6-91f2eed72d66",
+              "position": {
+                "left": 335,
+                "top": 391
+              },
+              "surface": "FindOne",
+              "connections": {
+                "inputs": [],
+                "outputs": []
+              },
+              "inputValues": [
+                {
+                  "id": "attr",
+                  "type": "",
+                  "label": "attr",
+                  "value": "location",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                },
+                {
+                  "id": "id",
+                  "type": "",
+                  "label": "id",
+                  "value": "",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                },
+                {
+                  "id": "AccountName",
+                  "type": "text",
+                  "label": "Account",
+                  "value": "",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                },
+                {
+                  "id": "trigger",
+                  "type": "",
+                  "label": "Trigger",
+                  "value": "",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                }
+              ],
+              "outputValues": [
+                {
+                  "id": "output",
+                  "type": "",
+                  "label": "All Output",
+                  "description": "",
+                  "documentation": "",
+                  "example": "",
+                  "dataType": ""
+                },
+                {
+                  "id": "__error__",
+                  "type": "error",
+                  "label": "Error",
+                  "description": "",
+                  "documentation": "",
+                  "example": "",
+                  "dataType": ""
+                }
+              ],
+              "timeout": 5000
+            },
+            {
+              "title": "Javascript",
+              "type": "javascript",
+              "id": "523dcd88-8993-4581-e331-6f1bcbad8f26",
+              "position": {
+                "left": 555,
+                "top": 288
+              },
+              "surface": "UploadImage",
+              "connections": {
+                "inputs": [
+                  {
+                    "source": "85bad114-7981-4930-b1f1-2678129de0a2:output:output",
+                    "target": "523dcd88-8993-4581-e331-6f1bcbad8f26:input:s3key"
+                  }
+                ],
+                "outputs": [
+                  {
+                    "source": "523dcd88-8993-4581-e331-6f1bcbad8f26:output:out",
+                    "target": "e54f9877-67ef-4082-af01-9f6d119728d4:input:value"
+                  }
+                ]
+              },
+              "inputValues": [
+                {
+                  "id": "trigger",
+                  "type": "",
+                  "label": "Trigger",
+                  "value": "",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                },
+                {
+                  "id": "s3key",
+                  "type": "",
+                  "label": "s3key",
+                  "value": "",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                }
+              ],
+              "outputValues": [
+                {
+                  "id": "__error__",
+                  "type": "error",
+                  "label": "Error",
+                  "description": "",
+                  "documentation": "",
+                  "example": "",
+                  "dataType": ""
+                },
+                {
+                  "id": "out",
+                  "type": "",
+                  "label": "out",
+                  "description": "",
+                  "documentation": "",
+                  "example": "",
+                  "dataType": ""
+                }
+              ],
+              "description": "",
+              "code": "outputs.out = xstr(inputs.s3key).trim() + '/' + oi.guid();"
+            },
+            {
+              "title": "Action",
+              "type": "actionstart",
+              "id": "a1b59c83-102f-4166-84aa-cb0da3fbe4c8",
+              "position": {
+                "left": 68,
+                "top": 98
+              },
+              "surface": "Claim",
+              "connections": {
+                "inputs": [],
+                "outputs": [
+                  {
+                    "source": "a1b59c83-102f-4166-84aa-cb0da3fbe4c8:output:id",
+                    "target": "f94483d7-9f4f-44cd-ca0d-3b009bab08b4:input:id"
+                  },
+                  {
+                    "source": "a1b59c83-102f-4166-84aa-cb0da3fbe4c8:output:Email",
+                    "target": "f94483d7-9f4f-44cd-ca0d-3b009bab08b4:input:email"
+                  }
+                ]
+              },
+              "inputValues": [],
+              "outputValues": [
+                {
+                  "id": "output",
+                  "type": "",
+                  "label": "All Output",
+                  "description": "",
+                  "documentation": "",
+                  "example": "",
+                  "dataType": ""
+                },
+                {
+                  "id": "__error__",
+                  "type": "error",
+                  "label": "Error",
+                  "description": "",
+                  "documentation": "",
+                  "example": "",
+                  "dataType": ""
+                },
+                {
+                  "id": "id",
+                  "type": "",
+                  "label": "id",
+                  "description": "",
+                  "documentation": "",
+                  "example": "",
+                  "dataType": ""
+                },
+                {
+                  "id": "Email",
+                  "type": "",
+                  "label": "Email",
+                  "description": "",
+                  "documentation": "",
+                  "example": "",
+                  "dataType": ""
+                }
+              ],
+              "actionName": "Claim",
+              "initiate": false,
+              "published": false,
+              "debug": false,
+              "roles": [],
+              "static": true,
+              "canOverrideCredentials": false,
+              "docs": ""
+            },
+            {
+              "title": "Template",
+              "type": "template",
+              "id": "6002fed3-eb62-434d-cf44-6c19b0fe453c",
+              "position": {
+                "left": 1424,
+                "top": 57
+              },
+              "surface": "UploadImage",
+              "connections": {
+                "inputs": [
+                  {
+                    "source": "9e9c0f3d-f33b-4fef-df65-a40ae857d36c:output:output",
+                    "target": "6002fed3-eb62-434d-cf44-6c19b0fe453c:input:s3key"
+                  }
+                ],
+                "outputs": [
+                  {
+                    "source": "6002fed3-eb62-434d-cf44-6c19b0fe453c:output:output",
+                    "target": "2d5ca9bb-0bec-426e-9f8e-e2acbca021d0:input:input"
+                  }
+                ]
+              },
+              "inputValues": [
+                {
+                  "id": "trigger",
+                  "type": "",
+                  "label": "Trigger",
+                  "value": "",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                },
+                {
+                  "id": "s3bucket",
+                  "type": "",
+                  "label": "s3bucket",
+                  "value": "#{model.s3bucket}",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                },
+                {
+                  "id": "s3key",
+                  "type": "",
+                  "label": "s3key",
+                  "value": "",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                }
+              ],
+              "outputValues": [
+                {
+                  "id": "output",
+                  "type": "",
+                  "label": "Output Text",
+                  "description": "",
+                  "documentation": "",
+                  "example": "",
+                  "dataType": ""
+                }
+              ],
+              "template": "#{s3bucket}/#{s3key}"
+            },
+            {
+              "title": "Insert one document",
+              "type": "modelcollections:insertone",
+              "id": "1893eb9d-8e2a-4545-c612-de9d33b52619",
+              "position": {
+                "left": 581.0000228881836,
+                "top": 109.00000476837158
+              },
+              "surface": "Create",
+              "connections": {
+                "inputs": [
+                  {
+                    "source": "6c924b51-d41a-41b5-d658-8ed56a132798:output:Name",
+                    "target": "1893eb9d-8e2a-4545-c612-de9d33b52619:input:Name"
+                  },
+                  {
+                    "source": "6d8a0a57-b13d-4ddb-80b7-c89b8bc0e1ee:output:output",
+                    "target": "1893eb9d-8e2a-4545-c612-de9d33b52619:input:Created"
+                  },
+                  {
+                    "source": "6c924b51-d41a-41b5-d658-8ed56a132798:output:Email",
+                    "target": "1893eb9d-8e2a-4545-c612-de9d33b52619:input:Email"
+                  },
+                  {
+                    "source": "6c924b51-d41a-41b5-d658-8ed56a132798:output:Location",
+                    "target": "1893eb9d-8e2a-4545-c612-de9d33b52619:input:Location"
+                  },
+                  {
+                    "source": "6c924b51-d41a-41b5-d658-8ed56a132798:output:Description",
+                    "target": "1893eb9d-8e2a-4545-c612-de9d33b52619:input:Description"
+                  },
+                  {
+                    "source": "6c924b51-d41a-41b5-d658-8ed56a132798:output:PoliceStationID",
+                    "target": "1893eb9d-8e2a-4545-c612-de9d33b52619:input:PoliceStationID"
+                  },
+                  {
+                    "source": "6c924b51-d41a-41b5-d658-8ed56a132798:output:LockerID",
+                    "target": "1893eb9d-8e2a-4545-c612-de9d33b52619:input:LockerID"
+                  },
+                  {
+                    "source": "6c924b51-d41a-41b5-d658-8ed56a132798:output:Status",
+                    "target": "1893eb9d-8e2a-4545-c612-de9d33b52619:input:Status"
+                  },
+                  {
+                    "source": "6c924b51-d41a-41b5-d658-8ed56a132798:output:Phone",
+                    "target": "1893eb9d-8e2a-4545-c612-de9d33b52619:input:Phone"
+                  },
+                  {
+                    "source": "6c924b51-d41a-41b5-d658-8ed56a132798:output:AdditionalDetails",
+                    "target": "1893eb9d-8e2a-4545-c612-de9d33b52619:input:AdditionalDetails"
+                  },
+                  {
+                    "source": "6c924b51-d41a-41b5-d658-8ed56a132798:output:ImageUrl",
+                    "target": "1893eb9d-8e2a-4545-c612-de9d33b52619:input:ImageUrl"
+                  },
+                  {
+                    "source": "6c924b51-d41a-41b5-d658-8ed56a132798:output:Features",
+                    "target": "1893eb9d-8e2a-4545-c612-de9d33b52619:input:Features"
+                  },
+                  {
+                    "source": "6c924b51-d41a-41b5-d658-8ed56a132798:output:FoundLocation",
+                    "target": "1893eb9d-8e2a-4545-c612-de9d33b52619:input:FoundLocation"
+                  }
+                ],
+                "outputs": [
+                  {
+                    "source": "1893eb9d-8e2a-4545-c612-de9d33b52619:output:output",
+                    "target": "a4a128fe-ffaf-438f-c018-ccd5a30c566e:input:input"
+                  }
+                ]
+              },
+              "inputValues": [
+                {
+                  "id": "trigger",
+                  "type": "",
+                  "label": "Trigger",
+                  "value": "",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                },
+                {
+                  "id": "Phone",
+                  "type": "",
+                  "label": "Phone",
+                  "value": "",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                },
+                {
+                  "id": "FoundLocation",
+                  "type": "",
+                  "label": "FoundLocation",
+                  "value": "",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                },
+                {
+                  "id": "Status",
+                  "type": "",
+                  "label": "Status",
+                  "value": "",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                },
+                {
+                  "id": "Description",
+                  "type": "",
+                  "label": "Description",
+                  "value": "",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                },
+                {
+                  "id": "PoliceStationID",
+                  "type": "",
+                  "label": "PoliceStationID",
+                  "value": "",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                },
+                {
+                  "id": "LockerID",
+                  "type": "",
+                  "label": "LockerID",
+                  "value": "",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                },
+                {
+                  "id": "AdditionalDetails",
+                  "type": "",
+                  "label": "AdditionalDetails",
+                  "value": "",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                },
+                {
+                  "id": "ImageUrl",
+                  "type": "",
+                  "label": "ImageUrl",
+                  "value": "",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                },
+                {
+                  "id": "Features",
+                  "type": "",
+                  "label": "Features",
+                  "value": "",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                },
+                {
+                  "id": "Email",
+                  "type": "",
+                  "label": "Email",
+                  "value": "",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                },
+                {
+                  "id": "Created",
+                  "type": "",
+                  "label": "Created",
+                  "value": "",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                },
+                {
+                  "id": "Location",
+                  "type": "",
+                  "label": "Location",
+                  "value": "",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                },
+                {
+                  "id": "Name",
+                  "type": "",
+                  "label": "Name",
+                  "value": "",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                },
+                {
+                  "id": "__data__",
+                  "type": "text",
+                  "label": "Data",
+                  "value": "",
+                  "description": "Data to be inserted",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                }
+              ],
+              "outputValues": [
+                {
+                  "id": "__error__",
+                  "type": "error",
+                  "label": "Error",
+                  "description": "",
+                  "documentation": "",
+                  "example": "",
+                  "dataType": ""
+                },
+                {
+                  "id": "output",
+                  "type": "",
+                  "label": "All Output",
+                  "description": "",
+                  "documentation": "",
+                  "example": "",
+                  "dataType": ""
+                }
+              ],
+              "CollectionName": "15810a60-5644-4aea-a7ba-24b47351315a",
+              "configuration": "[]",
+              "UpdateAsAttributes": true,
+              "ReceiveIndividualFields": false,
+              "timeout": 5000
+            },
+            {
+              "title": "Now",
+              "type": "objectaction:System:Now",
+              "id": "6d8a0a57-b13d-4ddb-80b7-c89b8bc0e1ee",
+              "position": {
+                "left": 330,
+                "top": 586
+              },
+              "surface": "Create",
+              "connections": {
+                "inputs": [],
+                "outputs": [
+                  {
+                    "source": "6d8a0a57-b13d-4ddb-80b7-c89b8bc0e1ee:output:output",
+                    "target": "1893eb9d-8e2a-4545-c612-de9d33b52619:input:Created"
+                  }
+                ]
+              },
+              "inputValues": [
+                {
+                  "id": "trigger",
+                  "type": "",
+                  "label": "Trigger",
+                  "value": "",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                }
+              ],
+              "outputValues": [
+                {
+                  "id": "output",
+                  "type": "",
+                  "label": "Output",
+                  "description": "",
+                  "documentation": "",
+                  "example": "",
+                  "dataType": ""
+                }
+              ]
+            },
+            {
+              "title": "Action",
+              "type": "actionstart",
+              "id": "8de9a6ca-2975-4272-8d40-24c138f7287e",
+              "position": {
+                "left": 60,
+                "top": 60
+              },
+              "surface": "Find",
+              "connections": {
+                "inputs": [],
+                "outputs": [
+                  {
+                    "source": "8de9a6ca-2975-4272-8d40-24c138f7287e:output:Description",
+                    "target": "075bbf41-b045-4655-e3d0-a5b09d2712aa:input:Description"
+                  }
+                ]
+              },
+              "inputValues": [],
+              "outputValues": [
+                {
+                  "id": "output",
+                  "type": "",
+                  "label": "All Output",
+                  "description": "",
+                  "documentation": "",
+                  "example": "",
+                  "dataType": ""
+                },
+                {
+                  "id": "__error__",
+                  "type": "error",
+                  "label": "Error",
+                  "description": "",
+                  "documentation": "",
+                  "example": "",
+                  "dataType": ""
+                },
+                {
+                  "id": "Description",
+                  "type": "",
+                  "label": "Description",
+                  "description": "",
+                  "documentation": "",
+                  "example": "",
+                  "dataType": ""
+                }
+              ],
+              "actionName": "Find",
+              "initiate": false,
+              "published": false,
+              "debug": false,
+              "roles": [],
+              "static": true,
+              "canOverrideCredentials": false,
+              "docs": ""
+            },
+            {
+              "title": "Output",
+              "type": "actionoutput",
+              "id": "f650c593-7967-4157-c763-2ab5db6d46d6",
+              "position": {
+                "left": 653,
+                "top": 166
+              },
+              "surface": "Update",
+              "connections": {
+                "inputs": [
+                  {
+                    "source": "55f279c7-dce5-4a4b-bc01-80554dea3024:output:out",
+                    "target": "f650c593-7967-4157-c763-2ab5db6d46d6:input:input"
+                  }
+                ],
+                "outputs": []
+              },
+              "inputValues": [
+                {
+                  "id": "input",
+                  "type": "",
+                  "label": "Value",
+                  "value": "",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                },
+                {
+                  "id": "trigger",
+                  "type": "",
+                  "label": "Trigger",
+                  "value": "",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                }
+              ],
+              "outputValues": [],
+              "fieldName": "result"
+            },
+            {
+              "title": "Action",
+              "type": "actionstart",
+              "id": "2078d6de-14d3-4734-85df-1ebf41ff6c8f",
+              "position": {
+                "left": 178,
+                "top": 182
+              },
+              "surface": "FindByStatus",
+              "connections": {
+                "inputs": [],
+                "outputs": [
+                  {
+                    "source": "2078d6de-14d3-4734-85df-1ebf41ff6c8f:output:status",
+                    "target": "ee73daf6-1914-4a6e-b29d-52dc10d353f5:input:status"
+                  }
+                ]
+              },
+              "inputValues": [],
+              "outputValues": [
+                {
+                  "id": "output",
+                  "type": "",
+                  "label": "All Output",
+                  "description": "",
+                  "documentation": "",
+                  "example": "",
+                  "dataType": ""
+                },
+                {
+                  "id": "__error__",
+                  "type": "error",
+                  "label": "Error",
+                  "description": "",
+                  "documentation": "",
+                  "example": "",
+                  "dataType": ""
+                },
+                {
+                  "id": "status",
+                  "type": "",
+                  "label": "status",
+                  "description": "",
+                  "documentation": "",
+                  "example": "",
+                  "dataType": ""
+                }
+              ],
+              "actionName": "FindByStatus",
+              "initiate": false,
+              "published": false,
+              "debug": false,
+              "roles": [],
+              "static": true,
+              "canOverrideCredentials": false,
+              "docs": ""
+            },
+            {
+              "title": "ES6Javascript",
+              "type": "es6javascript",
+              "id": "f94483d7-9f4f-44cd-ca0d-3b009bab08b4",
+              "position": {
+                "left": 337,
+                "top": 128
+              },
+              "surface": "Claim",
+              "connections": {
+                "inputs": [
+                  {
+                    "source": "a1b59c83-102f-4166-84aa-cb0da3fbe4c8:output:id",
+                    "target": "f94483d7-9f4f-44cd-ca0d-3b009bab08b4:input:id"
+                  },
+                  {
+                    "source": "a1b59c83-102f-4166-84aa-cb0da3fbe4c8:output:Email",
+                    "target": "f94483d7-9f4f-44cd-ca0d-3b009bab08b4:input:email"
+                  }
+                ],
+                "outputs": [
+                  {
+                    "source": "f94483d7-9f4f-44cd-ca0d-3b009bab08b4:output:qr",
+                    "target": "151c941b-cf7b-4f5e-f9be-565d8fb4ce3c:input:qr"
+                  }
+                ]
+              },
+              "inputValues": [
+                {
+                  "id": "trigger",
+                  "type": "",
+                  "label": "Trigger",
+                  "value": "",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                },
+                {
+                  "id": "id",
+                  "type": "",
+                  "label": "id",
+                  "value": "",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                },
+                {
+                  "id": "email",
+                  "type": "",
+                  "label": "email",
+                  "value": "",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                }
+              ],
+              "outputValues": [
+                {
+                  "id": "__error__",
+                  "type": "error",
+                  "label": "Error",
+                  "description": "",
+                  "documentation": "",
+                  "example": "",
+                  "dataType": ""
+                },
+                {
+                  "id": "qr",
+                  "type": "",
+                  "label": "qr",
+                  "description": "",
+                  "documentation": "",
+                  "example": "",
+                  "dataType": ""
+                }
+              ],
+              "description": "",
+              "code": "let inputs = runtime.inputs();\nlet id = xstr(inputs.id);\nlet email = xstr(inputs.email);\nlet collections = lucy.currentModel().collections();\n\ncollections.updateOne('Items', {\n    '_id': id\n}, {\n    '$push': {\n        'claimed': email\n    }\n}, {}).then(_ => lucy.generateQRCodeAsync(id))\n    .then(qr => runtime.done({qr}))\n    .catch(err => runtime.error(err));",
+              "timeoutMilliseconds": 5000
+            },
+            {
+              "title": "Output",
+              "type": "actionoutput",
+              "id": "6555cc31-906a-4197-91b1-2dba380936c0",
+              "position": {
+                "left": 605,
+                "top": 205
+              },
+              "surface": "FindClaimsByEmail",
+              "connections": {
+                "inputs": [
+                  {
+                    "source": "c8295737-aa00-4a88-b35e-611868757af3:output:out",
+                    "target": "6555cc31-906a-4197-91b1-2dba380936c0:input:input"
+                  }
+                ],
+                "outputs": []
+              },
+              "inputValues": [
+                {
+                  "id": "input",
+                  "type": "",
+                  "label": "Value",
+                  "value": "",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                },
+                {
+                  "id": "trigger",
+                  "type": "",
+                  "label": "Trigger",
+                  "value": "",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                }
+              ],
+              "outputValues": [],
+              "fieldName": ""
+            },
+            {
+              "title": "Output",
+              "type": "actionoutput",
+              "id": "ed033685-1713-4c9e-d250-032ec62a9128",
+              "position": {
+                "left": 635,
+                "top": 161
+              },
+              "surface": "FindByBagID",
+              "connections": {
+                "inputs": [
+                  {
+                    "source": "73c791c2-82c8-42db-9cfa-e68aee17be8a:output:out",
+                    "target": "ed033685-1713-4c9e-d250-032ec62a9128:input:input"
+                  }
+                ],
+                "outputs": []
+              },
+              "inputValues": [
+                {
+                  "id": "input",
+                  "type": "",
+                  "label": "Value",
+                  "value": "",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                },
+                {
+                  "id": "trigger",
+                  "type": "",
+                  "label": "Trigger",
+                  "value": "",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                }
+              ],
+              "outputValues": [],
+              "fieldName": ""
+            },
+            {
+              "title": "Fire Event",
+              "type": "fireevent",
+              "id": "60679188-a1ba-4876-906c-7a97d867f6e9",
+              "position": {
+                "left": 1397,
+                "top": 132
+              },
+              "surface": "Create",
+              "connections": {
+                "inputs": [
+                  {
+                    "source": "c4493c92-1865-4381-bc25-4bde94f998fc:output:data",
+                    "target": "60679188-a1ba-4876-906c-7a97d867f6e9:input:data"
+                  },
+                  {
+                    "source": "c4493c92-1865-4381-bc25-4bde94f998fc:output:features",
+                    "target": "60679188-a1ba-4876-906c-7a97d867f6e9:input:features"
+                  },
+                  {
+                    "source": "c4493c92-1865-4381-bc25-4bde94f998fc:output:location",
+                    "target": "60679188-a1ba-4876-906c-7a97d867f6e9:input:location"
+                  },
+                  {
+                    "source": "a4a128fe-ffaf-438f-c018-ccd5a30c566e:output:_id",
+                    "target": "60679188-a1ba-4876-906c-7a97d867f6e9:input:id"
+                  }
+                ],
+                "outputs": []
+              },
+              "inputValues": [
+                {
+                  "id": "trigger",
+                  "type": "",
+                  "label": "Trigger",
+                  "value": "",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                },
+                {
+                  "id": "id",
+                  "type": "",
+                  "label": "id",
+                  "value": "",
+                  "description": "ID of the found item created",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                },
+                {
+                  "id": "data",
+                  "type": "",
+                  "label": "data",
+                  "value": "",
+                  "description": "Data of the found item",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                },
+                {
+                  "id": "features",
+                  "type": "",
+                  "label": "features",
+                  "value": "",
+                  "description": "Features detected from the found item",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                },
+                {
+                  "id": "location",
+                  "type": "",
+                  "label": "location",
+                  "value": "",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                }
+              ],
+              "outputValues": [],
+              "eventID": "FoundItem.Created"
+            },
+            {
+              "title": "Set Value In Memory",
+              "type": "setinmemory",
+              "id": "e54f9877-67ef-4082-af01-9f6d119728d4",
+              "position": {
+                "left": 764,
+                "top": 57
+              },
+              "surface": "UploadImage",
+              "connections": {
+                "inputs": [
+                  {
+                    "source": "523dcd88-8993-4581-e331-6f1bcbad8f26:output:out",
+                    "target": "e54f9877-67ef-4082-af01-9f6d119728d4:input:value"
+                  }
+                ],
+                "outputs": [
+                  {
+                    "source": "e54f9877-67ef-4082-af01-9f6d119728d4:output:output",
+                    "target": "759c1cda-b7cf-47de-ce6c-3acf4e11b596:input:Key"
+                  }
+                ]
+              },
+              "inputValues": [
+                {
+                  "id": "prefix",
+                  "type": "",
+                  "label": "Prefix",
+                  "value": "",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                },
+                {
+                  "id": "key",
+                  "type": "",
+                  "label": "Key",
+                  "value": "s3key",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                },
+                {
+                  "id": "value",
+                  "type": "",
+                  "label": "Value",
+                  "value": "",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                },
+                {
+                  "id": "trigger",
+                  "type": "",
+                  "label": "Trigger",
+                  "value": "",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                }
+              ],
+              "outputValues": [
+                {
+                  "id": "output",
+                  "type": "",
+                  "label": "Output",
+                  "description": "",
+                  "documentation": "",
+                  "example": "",
+                  "dataType": ""
+                }
+              ]
+            },
+            {
+              "title": "ES6Javascript",
+              "type": "es6javascript",
+              "id": "9f099e05-23f3-44e5-b6da-967018913f58",
+              "position": {
+                "left": 354,
+                "top": 206
+              },
+              "surface": "FindOne",
+              "connections": {
+                "inputs": [
+                  {
+                    "source": "32efd209-c032-4ce0-9e64-c8fd584253bd:output:id",
+                    "target": "9f099e05-23f3-44e5-b6da-967018913f58:input:id"
+                  }
+                ],
+                "outputs": [
+                  {
+                    "source": "9f099e05-23f3-44e5-b6da-967018913f58:output:out",
+                    "target": "bb264623-cce7-4d3d-f963-543b148836d8:input:input"
+                  }
+                ]
+              },
+              "inputValues": [
+                {
+                  "id": "trigger",
+                  "type": "",
+                  "label": "Trigger",
+                  "value": "",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                },
+                {
+                  "id": "id",
+                  "type": "",
+                  "label": "id",
+                  "value": "",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                }
+              ],
+              "outputValues": [
+                {
+                  "id": "__error__",
+                  "type": "error",
+                  "label": "Error",
+                  "description": "",
+                  "documentation": "",
+                  "example": "",
+                  "dataType": ""
+                },
+                {
+                  "id": "out",
+                  "type": "",
+                  "label": "out",
+                  "description": "",
+                  "documentation": "",
+                  "example": "",
+                  "dataType": ""
+                },
+                {
+                  "id": "id",
+                  "type": "",
+                  "label": "id",
+                  "description": "",
+                  "documentation": "",
+                  "example": "",
+                  "dataType": ""
+                }
+              ],
+              "description": "",
+              "code": "let inputs = runtime.inputs();\nlet collections = lucy.currentModel().collections();\n\ncollections.findOne('Items', {_id: inputs.id}, {})\n    .then(out => {\n        let additionalDetails = out['AdditionalDetails'];\n\n        try {\n            additionalDetails = JSON.parse(additionalDetails);\n        } catch {}\n\n        runtime.done({out, id: additionalDetails.BusNumber || \"\"});\n    })\n    .catch(err => runtime.error(err));\n",
+              "timeoutMilliseconds": 5000
+            },
+            {
+              "title": "Action",
+              "type": "actionstart",
+              "id": "1eeee231-9b30-4336-ca00-52b07fa9630d",
+              "position": {
+                "left": 95,
+                "top": 128
+              },
+              "surface": "FindByBagID",
+              "connections": {
+                "inputs": [],
+                "outputs": [
+                  {
+                    "source": "1eeee231-9b30-4336-ca00-52b07fa9630d:output:id",
+                    "target": "73c791c2-82c8-42db-9cfa-e68aee17be8a:input:id"
+                  }
+                ]
+              },
+              "inputValues": [],
+              "outputValues": [
+                {
+                  "id": "output",
+                  "type": "",
+                  "label": "All Output",
+                  "description": "",
+                  "documentation": "",
+                  "example": "",
+                  "dataType": ""
+                },
+                {
+                  "id": "__error__",
+                  "type": "error",
+                  "label": "Error",
+                  "description": "",
+                  "documentation": "",
+                  "example": "",
+                  "dataType": ""
+                },
+                {
+                  "id": "id",
+                  "type": "",
+                  "label": "id",
+                  "description": "",
+                  "documentation": "",
+                  "example": "",
+                  "dataType": ""
+                }
+              ],
+              "actionName": "FindByBagID",
+              "initiate": false,
+              "published": false,
+              "debug": false,
+              "roles": [],
+              "static": true,
+              "canOverrideCredentials": false,
+              "docs": ""
+            },
+            {
+              "title": "ES6Javascript",
+              "type": "es6javascript",
+              "id": "73c791c2-82c8-42db-9cfa-e68aee17be8a",
+              "position": {
+                "left": 366,
+                "top": 136
+              },
+              "surface": "FindByBagID",
+              "connections": {
+                "inputs": [
+                  {
+                    "source": "1eeee231-9b30-4336-ca00-52b07fa9630d:output:id",
+                    "target": "73c791c2-82c8-42db-9cfa-e68aee17be8a:input:id"
+                  }
+                ],
+                "outputs": [
+                  {
+                    "source": "73c791c2-82c8-42db-9cfa-e68aee17be8a:output:out",
+                    "target": "ed033685-1713-4c9e-d250-032ec62a9128:input:input"
+                  }
+                ]
+              },
+              "inputValues": [
+                {
+                  "id": "trigger",
+                  "type": "",
+                  "label": "Trigger",
+                  "value": "",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                },
+                {
+                  "id": "id",
+                  "type": "",
+                  "label": "id",
+                  "value": "",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                }
+              ],
+              "outputValues": [
+                {
+                  "id": "__error__",
+                  "type": "error",
+                  "label": "Error",
+                  "description": "",
+                  "documentation": "",
+                  "example": "",
+                  "dataType": ""
+                },
+                {
+                  "id": "out",
+                  "type": "",
+                  "label": "out",
+                  "description": "",
+                  "documentation": "",
+                  "example": "",
+                  "dataType": ""
+                }
+              ],
+              "description": "",
+              "code": "let id = xstr(runtime.inputs().id);\nlet collections = lucy.currentModel().collections();\n\ncollections.findOne('Items', {\n    'AdditionalDetails.BagID': id\n}, {}).then(out => runtime.done({out}))\n    .catch(err => runtime.error(err));",
+              "timeoutMilliseconds": 5000
+            },
+            {
+              "title": "Output",
+              "type": "actionoutput",
+              "id": "fc9ba73d-bbbd-4cb5-b226-2ea84b3c3e36",
+              "position": {
+                "left": 682,
+                "top": 223
+              },
+              "surface": "FindByStatus",
+              "connections": {
+                "inputs": [
+                  {
+                    "source": "ee73daf6-1914-4a6e-b29d-52dc10d353f5:output:out",
+                    "target": "fc9ba73d-bbbd-4cb5-b226-2ea84b3c3e36:input:input"
+                  }
+                ],
+                "outputs": []
+              },
+              "inputValues": [
+                {
+                  "id": "input",
+                  "type": "",
+                  "label": "Value",
+                  "value": "",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                },
+                {
+                  "id": "trigger",
+                  "type": "",
+                  "label": "Trigger",
+                  "value": "",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                }
+              ],
+              "outputValues": [],
+              "fieldName": ""
+            },
+            {
+              "title": "Extract Image Features",
+              "type": "connector:AWSConnector:Extract Image Features",
+              "id": "458240a1-b0bc-40de-f272-ca2942e8347c",
+              "position": {
+                "left": 1424,
+                "top": 277
+              },
+              "surface": "UploadImage",
+              "connections": {
+                "inputs": [
+                  {
+                    "source": "e0c21e92-f346-4aca-fd80-451029ccd15f:output:output",
+                    "target": "458240a1-b0bc-40de-f272-ca2942e8347c:input:data"
+                  }
+                ],
+                "outputs": [
+                  {
+                    "source": "458240a1-b0bc-40de-f272-ca2942e8347c:output:output",
+                    "target": "8bbfd9dd-febd-4deb-b69d-5a9af6704505:input:aws_data"
+                  }
+                ]
+              },
+              "inputValues": [
+                {
+                  "id": "AccountName",
+                  "type": "",
+                  "label": "AccountName",
+                  "value": "iviva.releases",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                },
+                {
+                  "id": "RegionEndPoint",
+                  "type": "",
+                  "label": "RegionEndPoint",
+                  "value": "ap-southeast-1",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                },
+                {
+                  "id": "data",
+                  "type": "",
+                  "label": "Data",
+                  "value": "",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                },
+                {
+                  "id": "url",
+                  "type": "",
+                  "label": "Object URL",
+                  "value": "",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                },
+                {
+                  "id": "trigger",
+                  "type": "",
+                  "label": "Trigger",
+                  "value": "",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                }
+              ],
+              "outputValues": [
+                {
+                  "id": "output",
+                  "type": "",
+                  "label": "Output",
+                  "description": "",
+                  "documentation": "",
+                  "example": "",
+                  "dataType": ""
+                }
+              ]
+            },
+            {
+              "title": "Template",
+              "type": "template",
+              "id": "85bad114-7981-4930-b1f1-2678129de0a2",
+              "position": {
+                "left": 324,
+                "top": 277
+              },
+              "surface": "UploadImage",
+              "connections": {
+                "inputs": [
+                  {
+                    "source": "c04af95f-96e5-4453-959a-1b7978e658d9:output:output",
+                    "target": "85bad114-7981-4930-b1f1-2678129de0a2:input:trigger"
+                  }
+                ],
+                "outputs": [
+                  {
+                    "source": "85bad114-7981-4930-b1f1-2678129de0a2:output:output",
+                    "target": "523dcd88-8993-4581-e331-6f1bcbad8f26:input:s3key"
+                  }
+                ]
+              },
+              "inputValues": [
+                {
+                  "id": "trigger",
+                  "type": "",
+                  "label": "Trigger",
+                  "value": "",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                },
+                {
+                  "id": "s3key",
+                  "type": "",
+                  "label": "s3key",
+                  "value": "#{model.s3key}",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                }
+              ],
+              "outputValues": [
+                {
+                  "id": "output",
+                  "type": "",
+                  "label": "Output Text",
+                  "description": "",
+                  "documentation": "",
+                  "example": "",
+                  "dataType": ""
+                }
+              ],
+              "template": "#{s3key}"
+            },
+            {
+              "title": "Action",
+              "type": "actionstart",
+              "id": "b3265c80-8497-4a49-d75c-5e9aa2968eef",
+              "position": {
+                "left": 64,
+                "top": 164
+              },
+              "surface": "FindClaimsByEmail",
+              "connections": {
+                "inputs": [],
+                "outputs": [
+                  {
+                    "source": "b3265c80-8497-4a49-d75c-5e9aa2968eef:output:email",
+                    "target": "c8295737-aa00-4a88-b35e-611868757af3:input:email"
+                  }
+                ]
+              },
+              "inputValues": [],
+              "outputValues": [
+                {
+                  "id": "output",
+                  "type": "",
+                  "label": "All Output",
+                  "description": "",
+                  "documentation": "",
+                  "example": "",
+                  "dataType": ""
+                },
+                {
+                  "id": "__error__",
+                  "type": "error",
+                  "label": "Error",
+                  "description": "",
+                  "documentation": "",
+                  "example": "",
+                  "dataType": ""
+                },
+                {
+                  "id": "email",
+                  "type": "",
+                  "label": "email",
+                  "description": "",
+                  "documentation": "",
+                  "example": "",
+                  "dataType": ""
+                }
+              ],
+              "actionName": "FindClaimsByEmail",
+              "initiate": false,
+              "published": false,
+              "debug": false,
+              "roles": [],
+              "static": true,
+              "canOverrideCredentials": false,
+              "docs": ""
+            },
+            {
+              "title": "Action",
+              "type": "actionstart",
+              "id": "444700b8-de06-4f42-c8c7-636c2d1cb472",
+              "position": {
+                "left": 60,
+                "top": 76
+              },
+              "surface": "Handover",
+              "connections": {
+                "inputs": [],
+                "outputs": [
+                  {
+                    "source": "444700b8-de06-4f42-c8c7-636c2d1cb472:output:id",
+                    "target": "c8ddc260-722d-428f-e3a2-303a3da09900:input:id"
+                  },
+                  {
+                    "source": "444700b8-de06-4f42-c8c7-636c2d1cb472:output:LostItemID",
+                    "target": "c8ddc260-722d-428f-e3a2-303a3da09900:input:lostItemID"
+                  },
+                  {
+                    "source": "444700b8-de06-4f42-c8c7-636c2d1cb472:output:HandedOverEmail",
+                    "target": "c8ddc260-722d-428f-e3a2-303a3da09900:input:handedOverEmail"
+                  },
+                  {
+                    "source": "444700b8-de06-4f42-c8c7-636c2d1cb472:output:HandedOverToImageUrl",
+                    "target": "c8ddc260-722d-428f-e3a2-303a3da09900:input:handedOverToImageUrl"
+                  },
+                  {
+                    "source": "444700b8-de06-4f42-c8c7-636c2d1cb472:output:HandedOverCardDetails",
+                    "target": "c8ddc260-722d-428f-e3a2-303a3da09900:input:handedOverCardDetails"
+                  },
+                  {
+                    "source": "444700b8-de06-4f42-c8c7-636c2d1cb472:output:HandedOverName",
+                    "target": "c8ddc260-722d-428f-e3a2-303a3da09900:input:handedOverName"
+                  }
+                ]
+              },
+              "inputValues": [],
+              "outputValues": [
+                {
+                  "id": "output",
+                  "type": "",
+                  "label": "All Output",
+                  "description": "",
+                  "documentation": "",
+                  "example": "",
+                  "dataType": ""
+                },
+                {
+                  "id": "__error__",
+                  "type": "error",
+                  "label": "Error",
+                  "description": "",
+                  "documentation": "",
+                  "example": "",
+                  "dataType": ""
+                },
+                {
+                  "id": "id",
+                  "type": "",
+                  "label": "id",
+                  "description": "",
+                  "documentation": "",
+                  "example": "",
+                  "dataType": ""
+                },
+                {
+                  "id": "LostItemID",
+                  "type": "",
+                  "label": "LostItemID",
+                  "description": "",
+                  "documentation": "",
+                  "example": "",
+                  "dataType": ""
+                },
+                {
+                  "id": "HandedOverEmail",
+                  "type": "",
+                  "label": "HandedOverEmail",
+                  "description": "",
+                  "documentation": "",
+                  "example": "",
+                  "dataType": ""
+                },
+                {
+                  "id": "HandedOverToImageUrl",
+                  "type": "",
+                  "label": "HandedOverToImageUrl",
+                  "description": "",
+                  "documentation": "",
+                  "example": "",
+                  "dataType": ""
+                },
+                {
+                  "id": "HandedOverCardDetails",
+                  "type": "",
+                  "label": "HandedOverCardDetails",
+                  "description": "",
+                  "documentation": "",
+                  "example": "",
+                  "dataType": ""
+                },
+                {
+                  "id": "HandedOverName",
+                  "type": "",
+                  "label": "HandedOverName",
+                  "description": "",
+                  "documentation": "",
+                  "example": "",
+                  "dataType": ""
+                }
+              ],
+              "actionName": "Handover",
+              "initiate": false,
+              "published": false,
+              "debug": false,
+              "roles": [],
+              "static": true,
+              "canOverrideCredentials": false,
+              "docs": ""
+            },
+            {
+              "title": "Merge Data",
+              "type": "mergedata",
+              "id": "bb264623-cce7-4d3d-f963-543b148836d8",
+              "position": {
+                "left": 602,
+                "top": 215
+              },
+              "surface": "FindOne",
+              "connections": {
+                "inputs": [
+                  {
+                    "source": "9f099e05-23f3-44e5-b6da-967018913f58:output:out",
+                    "target": "bb264623-cce7-4d3d-f963-543b148836d8:input:input"
+                  }
+                ],
+                "outputs": [
+                  {
+                    "source": "bb264623-cce7-4d3d-f963-543b148836d8:output:output",
+                    "target": "cd26e300-bf3e-4ec3-ef4f-d4bbacd8d486:input:input"
+                  }
+                ]
+              },
+              "inputValues": [
+                {
+                  "id": "input",
+                  "type": "",
+                  "label": "Input",
+                  "value": "",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                },
+                {
+                  "id": "key",
+                  "type": "",
+                  "label": "Name",
+                  "value": "Location",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                },
+                {
+                  "id": "value",
+                  "type": "",
+                  "label": "Value",
+                  "value": "",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                }
+              ],
+              "outputValues": [
+                {
+                  "id": "output",
+                  "type": "",
+                  "label": "Output",
+                  "description": "",
+                  "documentation": "",
+                  "example": "",
+                  "dataType": ""
+                }
+              ]
+            },
+            {
+              "title": "Output",
+              "type": "actionoutput",
+              "id": "575768d5-428f-488e-82fc-327d5f6d9498",
+              "position": {
+                "left": 1093,
+                "top": 338
+              },
+              "surface": "FindOne",
+              "connections": {
+                "inputs": [
+                  {
+                    "source": "cd26e300-bf3e-4ec3-ef4f-d4bbacd8d486:output:output",
+                    "target": "575768d5-428f-488e-82fc-327d5f6d9498:input:input"
+                  }
+                ],
+                "outputs": []
+              },
+              "inputValues": [
+                {
+                  "id": "input",
+                  "type": "",
+                  "label": "Value",
+                  "value": "",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                },
+                {
+                  "id": "trigger",
+                  "type": "",
+                  "label": "Trigger",
+                  "value": "",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                }
+              ],
+              "outputValues": [],
+              "fieldName": ""
+            },
+            {
+              "title": "ES6Javascript",
+              "type": "es6javascript",
+              "id": "075bbf41-b045-4655-e3d0-a5b09d2712aa",
+              "position": {
+                "left": 355,
+                "top": 82
+              },
+              "surface": "Find",
+              "connections": {
+                "inputs": [
+                  {
+                    "source": "8de9a6ca-2975-4272-8d40-24c138f7287e:output:Description",
+                    "target": "075bbf41-b045-4655-e3d0-a5b09d2712aa:input:Description"
+                  }
+                ],
+                "outputs": [
+                  {
+                    "source": "075bbf41-b045-4655-e3d0-a5b09d2712aa:output:result",
+                    "target": "e5c2b04f-b3c4-4732-8d08-784a480fa07f:input:input"
+                  }
+                ]
+              },
+              "inputValues": [
+                {
+                  "id": "trigger",
+                  "type": "",
+                  "label": "Trigger",
+                  "value": "",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                },
+                {
+                  "id": "Description",
+                  "type": "",
+                  "label": "Description",
+                  "value": "",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                }
+              ],
+              "outputValues": [
+                {
+                  "id": "__error__",
+                  "type": "error",
+                  "label": "Error",
+                  "description": "",
+                  "documentation": "",
+                  "example": "",
+                  "dataType": ""
+                },
+                {
+                  "id": "result",
+                  "type": "",
+                  "label": "result",
+                  "description": "",
+                  "documentation": "",
+                  "example": "",
+                  "dataType": ""
+                }
+              ],
+              "description": "",
+              "code": "let inputs = runtime.inputs();\r\nlet description = xstr(inputs.Description).trim();\r\nlet collection = lucy.currentModel().collections();\r\nlet featuresRegexFilter = description.trim()\r\n    .split(' ')\r\n    .map(desc => {\r\n        return {\r\n            'Features': { \r\n                '$regex': '.*' + desc.trim() + '*',\r\n                '$options': 'i'\r\n            }\r\n        };\r\n    });\r\nlet filter = {\r\n    '$or': [\r\n        {\r\n            'Description': {\r\n                '$regex': '.*' + description.replace(' ', '\\ ') +'.*',\r\n                '$options': 'i'\r\n            }\r\n        }\r\n    ].concat(featuresRegexFilter)\r\n};\r\n\r\nif (description === '') {\r\n    filter = {};\r\n}\r\n\r\ncollection.findMany('Items', filter, {sort: {_id: -1}})\r\n    .then(result => {\r\n        runtime.done({result});\r\n    })\r\n    .catch(err => runtime.error(err));",
+              "timeoutMilliseconds": 5000
+            },
+            {
+              "title": "Entity Attribute Details",
+              "type": "callwebservice:Fiware Orion Broker:Entity Attribute Details",
+              "id": "0ff2dc2c-15bd-4ddc-b544-6ff1f6a76683",
+              "position": {
+                "left": 647,
+                "top": 490
+              },
+              "surface": "FindOne",
+              "connections": {
+                "inputs": [],
+                "outputs": []
+              },
+              "inputValues": [
+                {
+                  "id": "attr",
+                  "type": "",
+                  "label": "attr",
+                  "value": "speed",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                },
+                {
+                  "id": "id",
+                  "type": "",
+                  "label": "id",
+                  "value": "",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                },
+                {
+                  "id": "AccountName",
+                  "type": "text",
+                  "label": "Account",
+                  "value": "",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                },
+                {
+                  "id": "trigger",
+                  "type": "",
+                  "label": "Trigger",
+                  "value": "",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                }
+              ],
+              "outputValues": [
+                {
+                  "id": "output",
+                  "type": "",
+                  "label": "All Output",
+                  "description": "",
+                  "documentation": "",
+                  "example": "",
+                  "dataType": ""
+                },
+                {
+                  "id": "__error__",
+                  "type": "error",
+                  "label": "Error",
+                  "description": "",
+                  "documentation": "",
+                  "example": "",
+                  "dataType": ""
+                }
+              ],
+              "timeout": 5000
+            },
+            {
+              "title": "Output",
+              "type": "actionoutput",
+              "id": "2d5ca9bb-0bec-426e-9f8e-e2acbca021d0",
+              "position": {
+                "left": 1644,
+                "top": 57
+              },
+              "surface": "UploadImage",
+              "connections": {
+                "inputs": [
+                  {
+                    "source": "6002fed3-eb62-434d-cf44-6c19b0fe453c:output:output",
+                    "target": "2d5ca9bb-0bec-426e-9f8e-e2acbca021d0:input:input"
+                  }
+                ],
+                "outputs": []
+              },
+              "inputValues": [
+                {
+                  "id": "input",
+                  "type": "",
+                  "label": "Value",
+                  "value": "",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                },
+                {
+                  "id": "trigger",
+                  "type": "",
+                  "label": "Trigger",
+                  "value": "",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                }
+              ],
+              "outputValues": [],
+              "fieldName": "ImageUrl"
+            },
+            {
+              "title": "ES6Javascript",
+              "type": "es6javascript",
+              "id": "55f279c7-dce5-4a4b-bc01-80554dea3024",
+              "position": {
+                "left": 370,
+                "top": 143
+              },
+              "surface": "Update",
+              "connections": {
+                "inputs": [
+                  {
+                    "source": "83d54f43-8c20-4dca-f04a-cfc0971d2896:output:data",
+                    "target": "55f279c7-dce5-4a4b-bc01-80554dea3024:input:data"
+                  },
+                  {
+                    "source": "83d54f43-8c20-4dca-f04a-cfc0971d2896:output:id",
+                    "target": "55f279c7-dce5-4a4b-bc01-80554dea3024:input:id"
+                  }
+                ],
+                "outputs": [
+                  {
+                    "source": "55f279c7-dce5-4a4b-bc01-80554dea3024:output:out",
+                    "target": "f650c593-7967-4157-c763-2ab5db6d46d6:input:input"
+                  }
+                ]
+              },
+              "inputValues": [
+                {
+                  "id": "trigger",
+                  "type": "",
+                  "label": "Trigger",
+                  "value": "",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                },
+                {
+                  "id": "data",
+                  "type": "",
+                  "label": "data",
+                  "value": "",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                },
+                {
+                  "id": "id",
+                  "type": "",
+                  "label": "id",
+                  "value": "",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                }
+              ],
+              "outputValues": [
+                {
+                  "id": "__error__",
+                  "type": "error",
+                  "label": "Error",
+                  "description": "",
+                  "documentation": "",
+                  "example": "",
+                  "dataType": ""
+                },
+                {
+                  "id": "out",
+                  "type": "",
+                  "label": "out",
+                  "description": "",
+                  "documentation": "",
+                  "example": "",
+                  "dataType": ""
+                }
+              ],
+              "description": "",
+              "code": "let inputs = runtime.inputs();\r\nlet data = inputs.data;\r\nlet id = inputs.id;\r\nlet collection = lucy.currentModel().collections();\r\n\r\ntry {\r\n    data = JSON.parse(data);\r\n}\r\ncatch {}\r\n\r\ncollection.updateOne('Items', \r\n    {_id: id}, \r\n    {$set: data}, {})\r\n    .then(result => runtime.done({out: result}))\r\n    .catch(err => runtime.error(err));",
+              "timeoutMilliseconds": 5000
+            },
+            {
+              "title": "Extract Multiple Values",
+              "type": "extractmultiplevalues",
+              "id": "a4a128fe-ffaf-438f-c018-ccd5a30c566e",
+              "position": {
+                "left": 830,
+                "top": 161
+              },
+              "surface": "Create",
+              "connections": {
+                "inputs": [
+                  {
+                    "source": "1893eb9d-8e2a-4545-c612-de9d33b52619:output:output",
+                    "target": "a4a128fe-ffaf-438f-c018-ccd5a30c566e:input:input"
+                  }
+                ],
+                "outputs": [
+                  {
+                    "source": "a4a128fe-ffaf-438f-c018-ccd5a30c566e:output:_id",
+                    "target": "17e4f901-92b9-4e46-dea2-05b2fd22ed54:input:input"
+                  },
+                  {
+                    "source": "a4a128fe-ffaf-438f-c018-ccd5a30c566e:output:output",
+                    "target": "c4493c92-1865-4381-bc25-4bde94f998fc:input:data"
+                  },
+                  {
+                    "source": "a4a128fe-ffaf-438f-c018-ccd5a30c566e:output:Features",
+                    "target": "c4493c92-1865-4381-bc25-4bde94f998fc:input:features"
+                  },
+                  {
+                    "source": "a4a128fe-ffaf-438f-c018-ccd5a30c566e:output:_id",
+                    "target": "60679188-a1ba-4876-906c-7a97d867f6e9:input:id"
+                  }
+                ]
+              },
+              "inputValues": [
+                {
+                  "id": "input",
+                  "type": "",
+                  "label": "Input",
+                  "value": "",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                }
+              ],
+              "outputValues": [
+                {
+                  "id": "output",
+                  "type": "",
+                  "label": "Output",
+                  "description": "",
+                  "documentation": "",
+                  "example": "",
+                  "dataType": ""
+                },
+                {
+                  "id": "_id",
+                  "type": "",
+                  "label": "_id",
+                  "description": "",
+                  "documentation": "",
+                  "example": "",
+                  "dataType": ""
+                },
+                {
+                  "id": "Features",
+                  "type": "",
+                  "label": "Features",
+                  "description": "",
+                  "documentation": "",
+                  "example": "",
+                  "dataType": ""
+                }
+              ]
+            },
+            {
+              "title": "Output",
+              "type": "actionoutput",
+              "id": "f9641c44-4649-4600-9181-cd3309d44585",
+              "position": {
+                "left": 1881,
+                "top": 298
+              },
+              "surface": "UploadImage",
+              "connections": {
+                "inputs": [
+                  {
+                    "source": "8bbfd9dd-febd-4deb-b69d-5a9af6704505:output:features",
+                    "target": "f9641c44-4649-4600-9181-cd3309d44585:input:input"
+                  }
+                ],
+                "outputs": []
+              },
+              "inputValues": [
+                {
+                  "id": "input",
+                  "type": "",
+                  "label": "Value",
+                  "value": "",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                },
+                {
+                  "id": "trigger",
+                  "type": "",
+                  "label": "Trigger",
+                  "value": "",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                }
+              ],
+              "outputValues": [],
+              "fieldName": "Features"
+            },
+            {
+              "title": "Output",
+              "type": "actionoutput",
+              "id": "17e82cf4-94a4-4b6c-b1bf-c80da8f81a8e",
+              "position": {
+                "left": 592,
+                "top": 172
+              },
+              "surface": "All",
+              "connections": {
+                "inputs": [
+                  {
+                    "source": "dc3c8558-def5-4a12-e1dd-ca7d86afb2d3:output:out",
+                    "target": "17e82cf4-94a4-4b6c-b1bf-c80da8f81a8e:input:input"
+                  }
+                ],
+                "outputs": []
+              },
+              "inputValues": [
+                {
+                  "id": "input",
+                  "type": "",
+                  "label": "Value",
+                  "value": "",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                },
+                {
+                  "id": "trigger",
+                  "type": "",
+                  "label": "Trigger",
+                  "value": "",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                }
+              ],
+              "outputValues": [],
+              "fieldName": ""
+            },
+            {
+              "title": "Output",
+              "type": "actionoutput",
+              "id": "e5c2b04f-b3c4-4732-8d08-784a480fa07f",
+              "position": {
+                "left": 632,
+                "top": 87
+              },
+              "surface": "Find",
+              "connections": {
+                "inputs": [
+                  {
+                    "source": "075bbf41-b045-4655-e3d0-a5b09d2712aa:output:result",
+                    "target": "e5c2b04f-b3c4-4732-8d08-784a480fa07f:input:input"
+                  }
+                ],
+                "outputs": []
+              },
+              "inputValues": [
+                {
+                  "id": "input",
+                  "type": "",
+                  "label": "Value",
+                  "value": "",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                },
+                {
+                  "id": "trigger",
+                  "type": "",
+                  "label": "Trigger",
+                  "value": "",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                }
+              ],
+              "outputValues": [],
+              "fieldName": ""
+            },
+            {
+              "title": "Extract Image Features",
+              "type": "callwebservice:GoogleCloud:Extract Image Features",
+              "id": "d9613bd2-188c-4ffa-ed17-4aad30602c7c",
+              "position": {
+                "left": 1424,
+                "top": 497
+              },
+              "surface": "UploadImage",
+              "connections": {
+                "inputs": [
+                  {
+                    "source": "e0c21e92-f346-4aca-fd80-451029ccd15f:output:output",
+                    "target": "d9613bd2-188c-4ffa-ed17-4aad30602c7c:input:data"
+                  }
+                ],
+                "outputs": [
+                  {
+                    "source": "d9613bd2-188c-4ffa-ed17-4aad30602c7c:output:output",
+                    "target": "8bbfd9dd-febd-4deb-b69d-5a9af6704505:input:gcv_data"
+                  }
+                ]
+              },
+              "inputValues": [
+                {
+                  "id": "data",
+                  "type": "",
+                  "label": "data",
+                  "value": "",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                },
+                {
+                  "id": "AccountName",
+                  "type": "text",
+                  "label": "Account",
+                  "value": "ms",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                },
+                {
+                  "id": "trigger",
+                  "type": "",
+                  "label": "Trigger",
+                  "value": "",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                }
+              ],
+              "outputValues": [
+                {
+                  "id": "output",
+                  "type": "",
+                  "label": "All Output",
+                  "description": "",
+                  "documentation": "",
+                  "example": "",
+                  "dataType": ""
+                },
+                {
+                  "id": "__error__",
+                  "type": "error",
+                  "label": "Error",
+                  "description": "",
+                  "documentation": "",
+                  "example": "",
+                  "dataType": ""
+                }
+              ],
+              "timeout": 5000
+            },
+            {
+              "title": "Merge Data",
+              "type": "mergedata",
+              "id": "cd26e300-bf3e-4ec3-ef4f-d4bbacd8d486",
+              "position": {
+                "left": 849,
+                "top": 323
+              },
+              "surface": "FindOne",
+              "connections": {
+                "inputs": [
+                  {
+                    "source": "bb264623-cce7-4d3d-f963-543b148836d8:output:output",
+                    "target": "cd26e300-bf3e-4ec3-ef4f-d4bbacd8d486:input:input"
+                  }
+                ],
+                "outputs": [
+                  {
+                    "source": "cd26e300-bf3e-4ec3-ef4f-d4bbacd8d486:output:output",
+                    "target": "575768d5-428f-488e-82fc-327d5f6d9498:input:input"
+                  }
+                ]
+              },
+              "inputValues": [
+                {
+                  "id": "input",
+                  "type": "",
+                  "label": "Input",
+                  "value": "",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                },
+                {
+                  "id": "key",
+                  "type": "",
+                  "label": "Name",
+                  "value": "Speed",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                },
+                {
+                  "id": "value",
+                  "type": "",
+                  "label": "Value",
+                  "value": "",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                }
+              ],
+              "outputValues": [
+                {
+                  "id": "output",
+                  "type": "",
+                  "label": "Output",
+                  "description": "",
+                  "documentation": "",
+                  "example": "",
+                  "dataType": ""
+                }
+              ]
+            },
+            {
+              "title": "ES6Javascript",
+              "type": "es6javascript",
+              "id": "dc3c8558-def5-4a12-e1dd-ca7d86afb2d3",
+              "position": {
+                "left": 325,
+                "top": 145
+              },
+              "surface": "All",
+              "connections": {
+                "inputs": [
+                  {
+                    "source": "5506c5b7-bdb9-4427-d486-405dfa1b3810:output:output",
+                    "target": "dc3c8558-def5-4a12-e1dd-ca7d86afb2d3:input:trigger"
+                  }
+                ],
+                "outputs": [
+                  {
+                    "source": "dc3c8558-def5-4a12-e1dd-ca7d86afb2d3:output:out",
+                    "target": "17e82cf4-94a4-4b6c-b1bf-c80da8f81a8e:input:input"
+                  }
+                ]
+              },
+              "inputValues": [
+                {
+                  "id": "trigger",
+                  "type": "",
+                  "label": "Trigger",
+                  "value": "",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                }
+              ],
+              "outputValues": [
+                {
+                  "id": "__error__",
+                  "type": "error",
+                  "label": "Error",
+                  "description": "",
+                  "documentation": "",
+                  "example": "",
+                  "dataType": ""
+                },
+                {
+                  "id": "out",
+                  "type": "",
+                  "label": "out",
+                  "description": "",
+                  "documentation": "",
+                  "example": "",
+                  "dataType": ""
+                }
+              ],
+              "description": "",
+              "code": "lucy.currentModel()\n    .collections()\n    .findMany('Items', {}, {sort: {_id: -1}})\n    .then(out => runtime.done({out}))\n    .catch(err => runtime.error(err));",
+              "timeoutMilliseconds": 5000
+            },
+            {
+              "title": "Output",
+              "type": "actionoutput",
+              "id": "17e4f901-92b9-4e46-dea2-05b2fd22ed54",
+              "position": {
+                "left": 1083,
+                "top": 16
+              },
+              "surface": "Create",
+              "connections": {
+                "inputs": [
+                  {
+                    "source": "a4a128fe-ffaf-438f-c018-ccd5a30c566e:output:_id",
+                    "target": "17e4f901-92b9-4e46-dea2-05b2fd22ed54:input:input"
+                  }
+                ],
+                "outputs": []
+              },
+              "inputValues": [
+                {
+                  "id": "input",
+                  "type": "",
+                  "label": "Value",
+                  "value": "",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                },
+                {
+                  "id": "trigger",
+                  "type": "",
+                  "label": "Trigger",
+                  "value": "",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                }
+              ],
+              "outputValues": [],
+              "fieldName": "id"
+            },
+            {
+              "title": "Get Value From Memory",
+              "type": "getfrommemory",
+              "id": "9e9c0f3d-f33b-4fef-df65-a40ae857d36c",
+              "position": {
+                "left": 1211,
+                "top": 57
+              },
+              "surface": "UploadImage",
+              "connections": {
+                "inputs": [
+                  {
+                    "source": "759c1cda-b7cf-47de-ce6c-3acf4e11b596:output:Status",
+                    "target": "9e9c0f3d-f33b-4fef-df65-a40ae857d36c:input:trigger"
+                  }
+                ],
+                "outputs": [
+                  {
+                    "source": "9e9c0f3d-f33b-4fef-df65-a40ae857d36c:output:output",
+                    "target": "6002fed3-eb62-434d-cf44-6c19b0fe453c:input:s3key"
+                  }
+                ]
+              },
+              "inputValues": [
+                {
+                  "id": "prefix",
+                  "type": "",
+                  "label": "Prefix",
+                  "value": "",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                },
+                {
+                  "id": "key",
+                  "type": "",
+                  "label": "Key",
+                  "value": "s3key",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                },
+                {
+                  "id": "trigger",
+                  "type": "",
+                  "label": "Trigger",
+                  "value": "",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                }
+              ],
+              "outputValues": [
+                {
+                  "id": "output",
+                  "type": "",
+                  "label": "Output",
+                  "description": "",
+                  "documentation": "",
+                  "example": "",
+                  "dataType": ""
+                }
+              ]
+            },
+            {
+              "title": "Set Value In Memory",
+              "type": "setinmemory",
+              "id": "23349fcb-41e5-48b6-867a-d950d225bcea",
+              "position": {
+                "left": 413,
+                "top": 57
+              },
+              "surface": "UploadImage",
+              "connections": {
+                "inputs": [
+                  {
+                    "source": "c04af95f-96e5-4453-959a-1b7978e658d9:output:File",
+                    "target": "23349fcb-41e5-48b6-867a-d950d225bcea:input:value"
+                  }
+                ],
+                "outputs": [
+                  {
+                    "source": "23349fcb-41e5-48b6-867a-d950d225bcea:output:output",
+                    "target": "759c1cda-b7cf-47de-ce6c-3acf4e11b596:input:Data"
+                  }
+                ]
+              },
+              "inputValues": [
+                {
+                  "id": "prefix",
+                  "type": "",
+                  "label": "Prefix",
+                  "value": "",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                },
+                {
+                  "id": "key",
+                  "type": "",
+                  "label": "Key",
+                  "value": "file",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                },
+                {
+                  "id": "value",
+                  "type": "",
+                  "label": "Value",
+                  "value": "",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                },
+                {
+                  "id": "trigger",
+                  "type": "",
+                  "label": "Trigger",
+                  "value": "",
+                  "description": "",
+                  "documentation": "",
+                  "transformation": "",
+                  "disablelog": ""
+                }
+              ],
+              "outputValues": [
+                {
+                  "id": "output",
+                  "type": "",
+                  "label": "Output",
+                  "description": "",
+                  "documentation": "",
+                  "example": "",
+                  "dataType": ""
+                }
+              ]
+            }
+          ],
+          "position": {
+            "top": 0,
+            "left": 0
+          }
+        },
+        "sources": [
+          {
+            "name": "Find",
+            "published": false,
+            "static": true,
+            "initiate": false,
+            "canOverrideCredentials": false,
+            "outputs": [
+              ""
+            ],
+            "parameters": [
+              "Description"
+            ]
+          },
+          {
+            "name": "FindByStatus",
+            "published": false,
+            "static": true,
+            "initiate": false,
+            "canOverrideCredentials": false,
+            "outputs": [
+              ""
+            ],
+            "parameters": [
+              "status"
+            ]
+          },
+          {
+            "name": "Claim",
+            "published": false,
+            "static": true,
+            "initiate": false,
+            "canOverrideCredentials": false,
+            "outputs": [
+              "ok"
+            ],
+            "parameters": [
+              "id",
+              "Email"
+            ]
+          },
+          {
+            "name": "FindClaimsByEmail",
+            "published": false,
+            "static": true,
+            "initiate": false,
+            "canOverrideCredentials": false,
+            "outputs": [
+              ""
+            ],
+            "parameters": [
+              "email"
+            ]
+          },
+          {
+            "name": "All",
+            "published": false,
+            "static": true,
+            "initiate": false,
+            "canOverrideCredentials": false,
+            "outputs": [
+              ""
+            ],
+            "parameters": []
+          },
+          {
+            "name": "UploadImage",
+            "published": false,
+            "static": true,
+            "initiate": false,
+            "canOverrideCredentials": false,
+            "outputs": [
+              "ImageUrl",
+              "Features"
+            ],
+            "parameters": [
+              "File"
+            ]
+          },
+          {
+            "name": "FindOne",
+            "published": false,
+            "static": true,
+            "initiate": false,
+            "canOverrideCredentials": false,
+            "outputs": [
+              ""
+            ],
+            "parameters": [
+              "id"
+            ]
+          },
+          {
+            "name": "Create",
+            "published": false,
+            "static": true,
+            "initiate": false,
+            "canOverrideCredentials": false,
+            "outputs": [
+              "id"
+            ],
+            "parameters": [
+              "Name",
+              "Email",
+              "Location",
+              "Description",
+              "PoliceStationID",
+              "LockerID",
+              "Status",
+              "Phone",
+              "AdditionalDetails",
+              "ImageUrl",
+              "Features",
+              "FoundLocation"
+            ]
+          },
+          {
+            "name": "Update",
+            "published": false,
+            "static": true,
+            "initiate": false,
+            "canOverrideCredentials": false,
+            "outputs": [
+              "result"
+            ],
+            "parameters": [
+              "data",
+              "id"
+            ]
+          },
+          {
+            "name": "FindByBagID",
+            "published": false,
+            "static": true,
+            "initiate": false,
+            "canOverrideCredentials": false,
+            "outputs": [
+              ""
+            ],
+            "parameters": [
+              "id"
+            ]
+          },
+          {
+            "name": "Handover",
+            "published": false,
+            "static": true,
+            "initiate": false,
+            "canOverrideCredentials": false,
+            "outputs": [
+              "ok"
+            ],
+            "parameters": [
+              "id",
+              "LostItemID",
+              "HandedOverEmail",
+              "HandedOverToImageUrl",
+              "HandedOverCardDetails",
+              "HandedOverName"
+            ]
+          }
+        ],
+        "actions": [
+          {
+            "name": "Find",
+            "published": false,
+            "static": true,
+            "initiate": false,
+            "canOverrideCredentials": false,
+            "outputs": [
+              ""
+            ],
+            "parameters": [
+              "Description"
+            ]
+          },
+          {
+            "name": "FindByStatus",
+            "published": false,
+            "static": true,
+            "initiate": false,
+            "canOverrideCredentials": false,
+            "outputs": [
+              ""
+            ],
+            "parameters": [
+              "status"
+            ]
+          },
+          {
+            "name": "Claim",
+            "published": false,
+            "static": true,
+            "initiate": false,
+            "canOverrideCredentials": false,
+            "outputs": [
+              "ok"
+            ],
+            "parameters": [
+              "id",
+              "Email"
+            ]
+          },
+          {
+            "name": "FindClaimsByEmail",
+            "published": false,
+            "static": true,
+            "initiate": false,
+            "canOverrideCredentials": false,
+            "outputs": [
+              ""
+            ],
+            "parameters": [
+              "email"
+            ]
+          },
+          {
+            "name": "All",
+            "published": false,
+            "static": true,
+            "initiate": false,
+            "canOverrideCredentials": false,
+            "outputs": [
+              ""
+            ],
+            "parameters": []
+          },
+          {
+            "name": "UploadImage",
+            "published": false,
+            "static": true,
+            "initiate": false,
+            "canOverrideCredentials": false,
+            "outputs": [
+              "ImageUrl",
+              "Features"
+            ],
+            "parameters": [
+              "File"
+            ]
+          },
+          {
+            "name": "FindOne",
+            "published": false,
+            "static": true,
+            "initiate": false,
+            "canOverrideCredentials": false,
+            "outputs": [
+              ""
+            ],
+            "parameters": [
+              "id"
+            ]
+          },
+          {
+            "name": "Create",
+            "published": false,
+            "static": true,
+            "initiate": false,
+            "canOverrideCredentials": false,
+            "outputs": [
+              "id"
+            ],
+            "parameters": [
+              "Name",
+              "Email",
+              "Location",
+              "Description",
+              "PoliceStationID",
+              "LockerID",
+              "Status",
+              "Phone",
+              "AdditionalDetails",
+              "ImageUrl",
+              "Features",
+              "FoundLocation"
+            ]
+          },
+          {
+            "name": "Update",
+            "published": false,
+            "static": true,
+            "initiate": false,
+            "canOverrideCredentials": false,
+            "outputs": [
+              "result"
+            ],
+            "parameters": [
+              "data",
+              "id"
+            ]
+          },
+          {
+            "name": "FindByBagID",
+            "published": false,
+            "static": true,
+            "initiate": false,
+            "canOverrideCredentials": false,
+            "outputs": [
+              ""
+            ],
+            "parameters": [
+              "id"
+            ]
+          },
+          {
+            "name": "Handover",
+            "published": false,
+            "static": true,
+            "initiate": false,
+            "canOverrideCredentials": false,
+            "outputs": [
+              "ok"
+            ],
+            "parameters": [
+              "id",
+              "LostItemID",
+              "HandedOverEmail",
+              "HandedOverToImageUrl",
+              "HandedOverCardDetails",
+              "HandedOverName"
+            ]
+          }
+        ],
+        "uioptions": {}
+      },
+      "UIDefinition": null,
+      "MetadataDictionary": "{\n    \"title\": \"Found Item Model\",\n    \"description\": \"Found Item Model\",\n    \"tags\":[],\n    \"parameters\": [\n        {\n            \"id\": \"s3bucket\",\n            \"label\": \"S3 Bucket\",\n            \"type\": \"text\",\n            \"default\": \"\",\n            \"description\": \"S3 bucket to store the images in\"\n\n        },\n        {\n            \"id\": \"s3key\",\n            \"label\": \"S3 Key\",\n            \"type\": \"text\",\n            \"default\":\"\",\n            \"description\": \"S3 image key (this will be prefixed with uploaded image name)\"\n\n        }\n    ],\n    \"capabilities\": []\n}",
+      "Icon": "",
+      "ApiRoutes": [
+        {
+          "Key": "701",
+          "MapKey": "2",
+          "Route": "create",
+          "Method": "POST",
+          "BodyFormat": "JSON",
+          "QueryParams": "[]",
+          "IsActive": "0",
+          "Action": "Create",
+          "NoAuth": "0"
+        },
+        {
+          "Key": "702",
+          "MapKey": "2",
+          "Route": "{id}",
+          "Method": "PUT",
+          "BodyFormat": "JSON",
+          "QueryParams": "[]",
+          "IsActive": "0",
+          "Action": "Update",
+          "NoAuth": "0"
+        },
+        {
+          "Key": "703",
+          "MapKey": "2",
+          "Route": "all",
+          "Method": "GET",
+          "BodyFormat": "JSON",
+          "QueryParams": "[]",
+          "IsActive": "0",
+          "Action": "All",
+          "NoAuth": "0"
+        },
+        {
+          "Key": "704",
+          "MapKey": "2",
+          "Route": "find",
+          "Method": "POST",
+          "BodyFormat": "JSON",
+          "QueryParams": "[]",
+          "IsActive": "0",
+          "Action": "Find",
+          "NoAuth": "0"
+        },
+        {
+          "Key": "705",
+          "MapKey": "2",
+          "Route": "{id}",
+          "Method": "GET",
+          "BodyFormat": "JSON",
+          "QueryParams": "[]",
+          "IsActive": "0",
+          "Action": "FindOne",
+          "NoAuth": "0"
+        },
+        {
+          "Key": "706",
+          "MapKey": "2",
+          "Route": "findbystatus",
+          "Method": "POST",
+          "BodyFormat": "JSON",
+          "QueryParams": "[]",
+          "IsActive": "0",
+          "Action": "FindByStatus",
+          "NoAuth": "0"
+        },
+        {
+          "Key": "707",
+          "MapKey": "2",
+          "Route": "uploadimage",
+          "Method": "POST",
+          "BodyFormat": "Form",
+          "QueryParams": "[]",
+          "IsActive": "0",
+          "Action": "UploadImage",
+          "NoAuth": "0"
+        },
+        {
+          "Key": "708",
+          "MapKey": "2",
+          "Route": "claim/{id}",
+          "Method": "POST",
+          "BodyFormat": "JSON",
+          "QueryParams": "[]",
+          "IsActive": "0",
+          "Action": "Claim",
+          "NoAuth": "0"
+        },
+        {
+          "Key": "709",
+          "MapKey": "2",
+          "Route": "handover/{id}",
+          "Method": "POST",
+          "BodyFormat": "JSON",
+          "QueryParams": "[]",
+          "IsActive": "0",
+          "Action": "Handover",
+          "NoAuth": "0"
+        },
+        {
+          "Key": "710",
+          "MapKey": "2",
+          "Route": "claims",
+          "Method": "POST",
+          "BodyFormat": "JSON",
+          "QueryParams": "[]",
+          "IsActive": "0",
+          "Action": "FindClaimsByEmail",
+          "NoAuth": "0"
+        },
+        {
+          "Key": "711",
+          "MapKey": "2",
+          "Route": "findbybagid/{id}",
+          "Method": "GET",
+          "BodyFormat": "JSON",
+          "QueryParams": "[]",
+          "IsActive": "0",
+          "Action": "FindByBagID",
+          "NoAuth": "0"
+        },
+        {
+          "Key": "712",
+          "MapKey": "2",
+          "Route": "findbybagid",
+          "Method": "POST",
+          "BodyFormat": "JSON",
+          "QueryParams": "[]",
+          "IsActive": "0",
+          "Action": "FindByBagID",
+          "NoAuth": "0"
+        }
+      ],
+      "JSModules": [],
+      "ModelCollections": [
+        {
+          "Key": "84",
+          "MapKey": "2",
+          "GUID": "15810a60-5644-4aea-a7ba-24b47351315a",
+          "Attributes": "[{\"name\":\"Created\"},{\"name\":\"Name\"},{\"name\":\"Email\"},{\"name\":\"Location\"},{\"name\":\"Description\"},{\"name\":\"PoliceStationID\"},{\"name\":\"LockerID\"},{\"name\":\"Status\"},{\"name\":\"Features\"},{\"name\":\"ImageUrl\"},{\"name\":\"Phone\"},{\"name\":\"AdditionalDetails\"},{\"name\":\"FoundLocation\"}]",
+          "Name": "Items"
+        }
+      ]
+    }
+  ]
+}
