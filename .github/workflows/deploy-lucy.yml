@@ -16,9 +16,9 @@ jobs:
         node-version: 15
     - name: Install
       run: npm install
-    - name: GitHub Action for npx
-      uses: mikeal/npx@1.0.0
-    - run: npx webpack --mode production
+    # - name: GitHub Action for npx
+      # uses: mikeal/npx@1.0.0
+    # - run: npx webpack --mode production
     - name: GitHub Action for npx
       uses: mikeal/npx@1.0.0
     - run: npx lucy-xp@latest upload-models --lucy-url "https://learn2.v4.iviva.cloud" --lucy-apikey "SC:learn2:71c50e59196b060d"
